@@ -1,0 +1,1136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulse — Take the Vital Signs of Your Operation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600&family=Caveat:wght@400&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── Reset & Base ─── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      font-size: 17px;
+      line-height: 1.7;
+      color: #252850;
+      background: #ffffff;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #2D3272;
+      line-height: 1.2;
+    }
+
+    img { display: block; max-width: 100%; }
+
+    a { color: #2D8FBF; text-decoration: none; }
+    a:hover { color: #2D3272; }
+
+    .container {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ─── Scroll Animations ─── */
+    .fade-up {
+      opacity: 0;
+      transform: translateY(28px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .fade-up.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .fade-up.delay-1 { transition-delay: 0.1s; }
+    .fade-up.delay-2 { transition-delay: 0.2s; }
+    .fade-up.delay-3 { transition-delay: 0.3s; }
+    .fade-up.delay-4 { transition-delay: 0.4s; }
+    .fade-up.delay-5 { transition-delay: 0.5s; }
+
+    /* ─── Navbar ─── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #ffffff;
+      border-bottom: 1px solid #e8edf2;
+      padding: 0 24px;
+    }
+    .navbar-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 68px;
+    }
+    .navbar-logo {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      color: #2D3272;
+      letter-spacing: -0.5px;
+    }
+    .navbar-logo span {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      background: #F5D800;
+      border-radius: 50%;
+      margin-left: 3px;
+      margin-bottom: 2px;
+      vertical-align: middle;
+    }
+    .navbar-links {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      list-style: none;
+    }
+    .navbar-links a {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+      font-size: 15px;
+      color: #252850;
+      transition: color 0.2s;
+    }
+    .navbar-links a:hover { color: #2D8FBF; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 600;
+      font-size: 15px;
+      border-radius: 8px;
+      padding: 10px 22px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: 2px solid transparent;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: #2D8FBF;
+      color: #ffffff;
+      border-color: #2D8FBF;
+    }
+    .btn-primary:hover {
+      background: #2578a3;
+      border-color: #2578a3;
+      color: #ffffff;
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(45, 143, 191, 0.35);
+    }
+    .btn-outline {
+      background: transparent;
+      color: #2D3272;
+      border-color: #2D3272;
+    }
+    .btn-outline:hover {
+      background: #2D3272;
+      color: #ffffff;
+      transform: translateY(-1px);
+    }
+    .btn-yellow {
+      background: #F5D800;
+      color: #2D3272;
+      border-color: #F5D800;
+      font-size: 17px;
+      padding: 14px 34px;
+      border-radius: 10px;
+    }
+    .btn-yellow:hover {
+      background: #e8cc00;
+      border-color: #e8cc00;
+      color: #2D3272;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 216, 0, 0.4);
+    }
+    .btn-lg {
+      font-size: 17px;
+      padding: 14px 30px;
+      border-radius: 50px;
+    }
+
+    /* ─── HERO ─── */
+    .hero {
+      background: #ffffff;
+      padding: 90px 24px 0;
+      overflow: hidden;
+      position: relative;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+      opacity: 0.025;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .hero-inner, .hero-trust {
+      position: relative;
+      z-index: 1;
+    }
+    .hero-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+    .hero-accent {
+      font-family: 'Caveat', cursive;
+      font-weight: 400;
+      font-size: 22px;
+      color: #2DA870;
+      margin-bottom: 18px;
+      line-height: 1.3;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.4); opacity: 0.7; }
+    }
+    .hero h1 {
+      font-size: clamp(34px, 4.2vw, 50px);
+      font-weight: 800;
+      color: #2D3272;
+      letter-spacing: -1.2px;
+      margin-bottom: 22px;
+      line-height: 1.15;
+    }
+    .hero h1 em {
+      font-style: normal;
+      color: #2D8FBF;
+    }
+    .hero-sub {
+      font-size: 18px;
+      color: #5B7FA6;
+      line-height: 1.7;
+      margin-bottom: 36px;
+      max-width: 480px;
+    }
+    .hero-ctas {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .hero-visual {
+      position: relative;
+    }
+    .sketch-illustration {
+      position: absolute;
+      bottom: 24px;
+      left: -72px;
+      transform: rotate(3deg);
+      filter: drop-shadow(2px 4px 9px rgba(45, 50, 114, 0.10));
+      pointer-events: none;
+    }
+    .dashboard-card {
+      background: #ffffff;
+      border-radius: 20px;
+      box-shadow: 0 24px 64px rgba(45, 50, 114, 0.12), 0 4px 16px rgba(45, 50, 114, 0.06);
+      padding: 28px;
+      position: relative;
+    }
+    .dashboard-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+    }
+    .dashboard-card-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: #2D3272;
+    }
+    .score-badge {
+      background: #EBF6FA;
+      color: #2D8FBF;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      padding: 4px 12px;
+      border-radius: 20px;
+    }
+    .score-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .score-item {
+      background: #F5F7FA;
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .score-item-label {
+      font-size: 12px;
+      color: #5B7FA6;
+      font-weight: 500;
+      margin-bottom: 6px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .score-item-value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      color: #2D3272;
+    }
+    .score-item-value.green { color: #2DA870; }
+    .score-item-value.yellow { color: #D4AB00; }
+    .pulse-chart {
+      background: #EBF6FA;
+      border-radius: 12px;
+      padding: 16px;
+      height: 80px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+    }
+    .pulse-bars {
+      display: flex;
+      align-items: flex-end;
+      gap: 5px;
+      width: 100%;
+      height: 100%;
+    }
+    .pulse-bar {
+      flex: 1;
+      background: #5BB8D4;
+      border-radius: 4px 4px 0 0;
+      transition: height 0.3s ease;
+    }
+    .pulse-bar.highlight { background: #2D8FBF; }
+    .pulse-bar.top { background: #2DA870; }
+    .chart-label {
+      position: absolute;
+      top: 10px;
+      left: 16px;
+      font-size: 11px;
+      color: #5B7FA6;
+      font-weight: 600;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .action-items {
+      margin-top: 14px;
+    }
+    .action-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 0;
+      border-bottom: 1px solid #f0f2f5;
+      font-size: 13px;
+    }
+    .action-item:last-child { border-bottom: none; }
+    .action-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .action-dot.open { background: #F5D800; }
+    .action-dot.done { background: #2DA870; }
+    .action-dot.review { background: #2D8FBF; }
+    .action-text {
+      flex: 1;
+      color: #252850;
+      font-family: 'Inter', sans-serif;
+    }
+    .action-owner {
+      color: #5B7FA6;
+      font-size: 12px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+    }
+    /* floating accent cards */
+    .float-card {
+      position: absolute;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(45, 50, 114, 0.12);
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2D3272;
+    }
+    .float-card.top-left {
+      top: -20px;
+      left: -30px;
+    }
+    .float-card.bottom-right {
+      bottom: -20px;
+      right: -20px;
+    }
+    .float-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+    .float-icon.green { background: #d4f3e6; }
+    .float-icon.yellow { background: #fff8cc; }
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.04); }
+    }
+    .float-card.bottom-right {
+      animation: badgePulse 2s ease-in-out infinite;
+    }
+
+    .hero-trust {
+      max-width: 1120px;
+      margin: 60px auto 0;
+      padding: 0 24px 28px;
+    }
+    .hero-trust-rule {
+      border: none;
+      border-top: 1px solid #e8edf2;
+      margin-bottom: 22px;
+    }
+    .hero-trust-text {
+      text-align: center;
+      font-size: 14px;
+      color: #5B7FA6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+    }
+    .trust-pills {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    .trust-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #5B7FA6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+    }
+    .trust-pill::before {
+      content: '✓';
+      color: #2DA870;
+      font-weight: 700;
+    }
+
+    /* ─── PROBLEM / SOLUTION ─── */
+    .problem-solution {
+      background: #EBF6FA;
+      padding: 96px 24px;
+    }
+    .section-label {
+      text-align: center;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #2D8FBF;
+      margin-bottom: 14px;
+    }
+    .section-headline {
+      text-align: center;
+      font-size: clamp(32px, 4vw, 46px);
+      font-weight: 800;
+      color: #2D3272;
+      letter-spacing: -1px;
+      margin-bottom: 16px;
+    }
+    .section-sub {
+      text-align: center;
+      font-size: 17px;
+      color: #5B7FA6;
+      max-width: 560px;
+      margin: 0 auto 60px;
+      line-height: 1.7;
+    }
+    .ps-grid {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .ps-column {
+      background: #ffffff;
+      border-radius: 20px;
+      padding: 36px;
+      box-shadow: 0 2px 16px rgba(45, 50, 114, 0.06);
+    }
+    .ps-column-label {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 28px;
+    }
+    .ps-column-label.problem { color: #B0B8C9; }
+    .ps-column-label.solution { color: #2DA870; }
+    .ps-item {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 28px;
+    }
+    .ps-item:last-child { margin-bottom: 0; }
+    .ps-icon {
+      flex-shrink: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    .ps-icon.problem-icon {
+      background: #f5f5f7;
+      color: #B0B8C9;
+    }
+    .ps-icon.solution-icon {
+      background: #d4f3e6;
+      color: #2DA870;
+    }
+    .ps-text {
+      font-size: 16px;
+      line-height: 1.65;
+      color: #252850;
+    }
+    .ps-text strong {
+      display: block;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      color: #2D3272;
+      margin-bottom: 4px;
+      font-size: 15px;
+    }
+
+    /* ─── FEATURES ─── */
+    .features {
+      background: #ffffff;
+      padding: 96px 24px;
+    }
+    .features-grid {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: #F5F7FA;
+      border-radius: 18px;
+      padding: 30px;
+      box-shadow: 0 2px 8px rgba(45, 50, 114, 0.05);
+      transition: all 0.25s ease;
+      border-top: 3px solid transparent;
+      position: relative;
+      overflow: hidden;
+    }
+    .feature-card:hover {
+      box-shadow: 0 12px 36px rgba(45, 50, 114, 0.12);
+      transform: translateY(-4px);
+      border-top-color: #F5D800;
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      margin-bottom: 18px;
+    }
+    .feature-icon.navy { background: #EBF0F8; }
+    .feature-icon.sky { background: #EBF6FA; }
+    .feature-icon.teal { background: #d4f3e6; }
+    .feature-icon.yellow { background: #fff8cc; }
+    .feature-card h3 {
+      font-size: 17px;
+      font-weight: 700;
+      color: #2D3272;
+      margin-bottom: 10px;
+      line-height: 1.3;
+    }
+    .feature-card p {
+      font-size: 15px;
+      color: #5B7FA6;
+      line-height: 1.65;
+    }
+
+    /* ─── SOCIAL PROOF ─── */
+    .social-proof {
+      background: #2D3272;
+      padding: 96px 24px;
+    }
+    .social-proof .section-headline { color: #ffffff; }
+    .social-proof .section-sub { color: #8B9CC8; }
+    .testimonials-grid {
+      max-width: 1120px;
+      margin: 0 auto 60px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .testimonial-card {
+      background: #ffffff;
+      border-radius: 18px;
+      padding: 32px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      border-left: 4px solid #2DA870;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+    .testimonial-quote {
+      font-size: 16px;
+      line-height: 1.7;
+      color: #252850;
+      flex: 1;
+      font-style: italic;
+    }
+    .testimonial-quote::before {
+      content: '\201C';
+      font-size: 40px;
+      line-height: 1;
+      color: #5BB8D4;
+      display: block;
+      margin-bottom: 8px;
+      font-style: normal;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+    }
+    .testimonial-author {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .testimonial-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 700;
+      font-size: 15px;
+      color: #2D3272;
+    }
+    .testimonial-role {
+      font-size: 13px;
+      color: #5B7FA6;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+    }
+    .stars {
+      color: #F5D800;
+      font-size: 15px;
+      letter-spacing: 2px;
+    }
+    .proof-cta {
+      text-align: center;
+    }
+    .proof-cta-headline {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: clamp(24px, 3vw, 34px);
+      color: #ffffff;
+      margin-bottom: 28px;
+      letter-spacing: -0.5px;
+    }
+
+    /* ─── FOOTER ─── */
+    .footer {
+      background: #2D3272;
+      border-top: 1px solid rgba(255,255,255,0.08);
+      padding: 36px 24px;
+    }
+    .footer-inner {
+      max-width: 1120px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-logo {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 800;
+      font-size: 20px;
+      color: #ffffff;
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+    .footer-logo span {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #F5D800;
+      border-radius: 50%;
+      margin-left: 2px;
+      margin-bottom: 2px;
+      vertical-align: middle;
+    }
+    .footer-tagline {
+      font-size: 13px;
+      color: #8B9CC8;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .footer-right {
+      font-size: 13px;
+      color: #8B9CC8;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      text-align: right;
+    }
+
+    /* ─── Hamburger / Mobile Nav ─── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      cursor: pointer;
+      padding: 4px;
+      background: none;
+      border: none;
+    }
+    .hamburger span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: #2D3272;
+      border-radius: 2px;
+      transition: all 0.2s;
+    }
+    .mobile-menu {
+      display: none;
+      flex-direction: column;
+      gap: 0;
+      background: #ffffff;
+      border-top: 1px solid #e8edf2;
+      padding: 16px 24px 20px;
+    }
+    .mobile-menu.open { display: flex; }
+    .mobile-menu a {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-weight: 500;
+      font-size: 16px;
+      color: #252850;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f2f5;
+    }
+    .mobile-menu a:last-child { border-bottom: none; }
+    .mobile-menu .btn {
+      margin-top: 12px;
+      width: 100%;
+      justify-content: center;
+      font-size: 16px;
+      padding: 13px;
+    }
+
+    /* ─── Responsive ─── */
+    @media (max-width: 900px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+        text-align: center;
+      }
+      .hero-sub { margin: 0 auto 36px; }
+      .hero-ctas { justify-content: center; }
+      .hero-visual { display: none; }
+      .ps-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .testimonials-grid { grid-template-columns: 1fr; }
+      .navbar-links, .navbar .btn { display: none; }
+      .hamburger { display: flex; }
+    }
+    @media (max-width: 580px) {
+      .features-grid { grid-template-columns: 1fr; }
+      .hero-ctas { flex-direction: column; }
+      .hero-ctas .btn { width: 100%; }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+      .footer-right { text-align: left; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ─── NAVBAR ─── -->
+  <nav class="navbar">
+    <div class="navbar-inner">
+      <a href="#" class="navbar-logo">Pulse<span></span></a>
+      <ul class="navbar-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#signin">Sign In</a></li>
+      </ul>
+      <a href="#" class="btn btn-primary" style="display:flex;">Start Free Trial</a>
+      <button class="hamburger" aria-label="Menu" onclick="toggleMenu()">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+    <div class="mobile-menu" id="mobileMenu">
+      <a href="#features">Features</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#signin">Sign In</a>
+      <a href="#" class="btn btn-primary">Start Free Trial</a>
+    </div>
+  </nav>
+
+  <!-- ─── HERO ─── -->
+  <section class="hero">
+    <div class="hero-inner container">
+      <div class="hero-content">
+        <p class="hero-accent fade-up">Finally — a tool built for the floor.</p>
+        <h1 class="fade-up delay-1">Your 6S program deserves<br>better than <em>a clipboard<br>and a prayer.</em></h1>
+        <p class="hero-sub fade-up delay-2">
+          Pulse helps CI and OE teams run structured workplace audits, track scores over time, and close corrective actions — without the paper, the spreadsheets, or the chasing.
+        </p>
+        <div class="hero-ctas fade-up delay-3">
+          <a href="#" class="btn btn-primary btn-lg">Start Free Trial</a>
+          <a href="#" class="btn btn-outline btn-lg">See How It Works</a>
+        </div>
+      </div>
+
+      <div class="hero-visual fade-up delay-2">
+        <div class="float-card top-left">
+          <div class="float-icon green">✓</div>
+          Audit complete
+        </div>
+        <div class="dashboard-card">
+          <div class="dashboard-card-header">
+            <div class="dashboard-card-title">Q1 Site Audit Dashboard</div>
+            <div class="score-badge">Week 11</div>
+          </div>
+          <div class="score-grid">
+            <div class="score-item">
+              <div class="score-item-label">Avg. Score</div>
+              <div class="score-item-value green">87%</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-label">Open Actions</div>
+              <div class="score-item-value yellow">12</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-label">Areas Audited</div>
+              <div class="score-item-value">24</div>
+            </div>
+            <div class="score-item">
+              <div class="score-item-label">Closed This Week</div>
+              <div class="score-item-value green">8</div>
+            </div>
+          </div>
+          <div class="pulse-chart">
+            <span class="chart-label">12-week trend</span>
+            <div class="pulse-bars">
+              <div class="pulse-bar" style="height:45%"></div>
+              <div class="pulse-bar" style="height:55%"></div>
+              <div class="pulse-bar" style="height:48%"></div>
+              <div class="pulse-bar highlight" style="height:62%"></div>
+              <div class="pulse-bar" style="height:58%"></div>
+              <div class="pulse-bar" style="height:70%"></div>
+              <div class="pulse-bar highlight" style="height:65%"></div>
+              <div class="pulse-bar" style="height:74%"></div>
+              <div class="pulse-bar" style="height:72%"></div>
+              <div class="pulse-bar top" style="height:80%"></div>
+              <div class="pulse-bar top" style="height:85%"></div>
+              <div class="pulse-bar top" style="height:88%"></div>
+            </div>
+          </div>
+          <div class="action-items">
+            <div class="action-item">
+              <div class="action-dot done"></div>
+              <div class="action-text">Label all chemical storage areas</div>
+              <div class="action-owner">J. Rivera</div>
+            </div>
+            <div class="action-item">
+              <div class="action-dot open"></div>
+              <div class="action-text">Update spill kit inspection log</div>
+              <div class="action-owner">T. Nguyen</div>
+            </div>
+            <div class="action-item">
+              <div class="action-dot review"></div>
+              <div class="action-text">Restock PPE station — Line 3</div>
+              <div class="action-owner">M. Santos</div>
+            </div>
+          </div>
+        </div>
+        <div class="float-card bottom-right">
+          <div class="float-icon yellow">✦</div>
+          AI summary ready
+        </div>
+
+        <!-- Hand-drawn clipboard sketch -->
+        <svg class="sketch-illustration" width="118" height="160" viewBox="0 0 118 160" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Clipboard body — slightly wobbly outline -->
+          <path d="M 15,31 C 38,29 78,27 103,29 C 103.5,60 104,108 103,151 C 78,153 42,154 14,152 C 14,115 14.5,65 15,31 Z"
+                fill="#FAFAF5" stroke="#2D3272" stroke-width="2.4" stroke-linejoin="round"/>
+          <!-- Clip at top -->
+          <path d="M 39,21 C 44,20 73,20 79,21 C 79.5,25 79.5,34 79,34 C 74,35 44,35 39,34 C 38.5,29 39,21 39,21 Z"
+                fill="#F0F0E8" stroke="#2D3272" stroke-width="1.7" stroke-linejoin="round"/>
+          <!-- Clip ring hole -->
+          <ellipse cx="59" cy="26" rx="5.5" ry="5" fill="#FAFAF5" stroke="#2D3272" stroke-width="1.5"/>
+
+          <!-- Row 1 — checked -->
+          <path d="M 24,52 C 26,51 37,51 39,52 C 39.5,54 39.5,65 39,65 C 37,66 26,66 24,65 C 23.5,60 24,52 24,52 Z"
+                fill="none" stroke="#2D3272" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M 27,59 L 31,64 L 38,54"
+                fill="none" stroke="#2D3272" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 47,58 C 63,57 82,57 99,58"
+                fill="none" stroke="#2D3272" stroke-width="1.2" stroke-linecap="round" opacity="0.5"/>
+
+          <!-- Row 2 — checked -->
+          <path d="M 24,75 C 26,74 37,74 39,75 C 39.5,77 39.5,88 39,88 C 37,89 26,89 24,88 C 23.5,83 24,75 24,75 Z"
+                fill="none" stroke="#2D3272" stroke-width="1.8" stroke-linejoin="round"/>
+          <path d="M 27,82 L 31,87 L 38,77"
+                fill="none" stroke="#2D3272" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 47,81 C 65,80 85,80 99,81"
+                fill="none" stroke="#2D3272" stroke-width="1.4" stroke-linecap="round" opacity="0.5"/>
+
+          <!-- Row 3 — open -->
+          <path d="M 24,98 C 26,97 37,97 39,98 C 39.5,100 39.5,111 39,111 C 37,112 26,112 24,111 C 23.5,106 24,98 24,98 Z"
+                fill="none" stroke="#2D3272" stroke-width="1.6" stroke-linejoin="round"/>
+          <path d="M 47,104 C 65,103 87,103 98,104"
+                fill="none" stroke="#2D3272" stroke-width="1.1" stroke-linecap="round" opacity="0.5"/>
+          <path d="M 47,114 C 61,113 76,113 88,114"
+                fill="none" stroke="#2D3272" stroke-width="0.9" stroke-linecap="round" opacity="0.32"/>
+
+          <!-- Subtle divider -->
+          <path d="M 22,126 C 50,125 80,125 100,126"
+                fill="none" stroke="#2D3272" stroke-width="0.7" stroke-linecap="round" opacity="0.22"/>
+
+          <!-- Pulse / heartbeat line in sky blue -->
+          <path d="M 22,140 C 30,140 34,140 38,132 C 40.5,127 43,145 47,140 C 55,140 59,140 63,140 C 67,140 71,140 75,133 C 77.5,128 80,145 84,140 C 91,140 97,140 101,140"
+                fill="none" stroke="#2D8FBF" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" opacity="0.82"/>
+        </svg>
+
+      </div>
+    </div>
+
+    <div class="hero-trust">
+      <hr class="hero-trust-rule" />
+      <p class="hero-trust-text">Used in labs, warehouses, and production floors — wherever 6S lives.</p>
+      <div class="trust-pills">
+        <div class="trust-pill">No paper. No re-entry.</div>
+        <div class="trust-pill">Action items auto-assigned</div>
+        <div class="trust-pill">Dashboards that build themselves</div>
+        <div class="trust-pill">Works on any device</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── PROBLEM / SOLUTION ─── -->
+  <section class="problem-solution" id="features">
+    <div class="container">
+      <div class="section-label fade-up">The honest truth</div>
+      <h2 class="section-headline fade-up delay-1">Sound familiar?</h2>
+      <p class="section-sub fade-up delay-2">Most audit programs aren't failing because of people. They're failing because of the tools — or the lack of them.</p>
+
+      <div class="ps-grid">
+        <div class="ps-column fade-up delay-1">
+          <div class="ps-column-label problem">The problem</div>
+          <div class="ps-item">
+            <div class="ps-icon problem-icon">✕</div>
+            <div class="ps-text">
+              <strong>Paper checklists go missing.</strong>
+              Scores never get recorded. That audit happened. You just can't prove it.
+            </div>
+          </div>
+          <div class="ps-item">
+            <div class="ps-icon problem-icon">✕</div>
+            <div class="ps-text">
+              <strong>Spreadsheets break.</strong>
+              Action items fall through the cracks. Nobody knows who owns what — or if it's even still a problem.
+            </div>
+          </div>
+          <div class="ps-item">
+            <div class="ps-icon problem-icon">✕</div>
+            <div class="ps-text">
+              <strong>You spend hours building reports</strong>
+              instead of driving improvement. Your ops meeting prep takes longer than the ops meeting.
+            </div>
+          </div>
+        </div>
+
+        <div class="ps-column fade-up delay-2">
+          <div class="ps-column-label solution">With Pulse</div>
+          <div class="ps-item">
+            <div class="ps-icon solution-icon">✓</div>
+            <div class="ps-text">
+              <strong>Pulse guides your team through every audit on any device.</strong>
+              No paper, no re-entry. The record is created the moment it's completed.
+            </div>
+          </div>
+          <div class="ps-item">
+            <div class="ps-icon solution-icon">✓</div>
+            <div class="ps-text">
+              <strong>Findings auto-generate action items</strong>
+              with owners, due dates, and status tracking. Nothing falls through the cracks because there are no cracks.
+            </div>
+          </div>
+          <div class="ps-item">
+            <div class="ps-icon solution-icon">✓</div>
+            <div class="ps-text">
+              <strong>Trend charts and dashboards build themselves.</strong>
+              You show up to the meeting ready — with data, stories, and a plan.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── FEATURES ─── -->
+  <section class="features">
+    <div class="container">
+      <div class="section-label fade-up">What's inside</div>
+      <h2 class="section-headline fade-up delay-1">Everything you need.<br>Nothing you don't.</h2>
+      <p class="section-sub fade-up delay-2">Built for the way operational excellence teams actually work — on the floor, in the meeting room, and everywhere in between.</p>
+
+      <div class="features-grid">
+        <div class="feature-card fade-up delay-1">
+          <div class="feature-icon navy">🏭</div>
+          <h3>Multi-Area Audit Management</h3>
+          <p>Run audits across every area of your site from one place. Assign, schedule, and track — all without a single spreadsheet.</p>
+        </div>
+        <div class="feature-card fade-up delay-2">
+          <div class="feature-icon sky">📋</div>
+          <h3>Customizable Checklists</h3>
+          <p>Build a standard template, then tailor it for labs, warehouses, or production floors. Your standard, your way.</p>
+        </div>
+        <div class="feature-card fade-up delay-3">
+          <div class="feature-icon teal">📈</div>
+          <h3>Score Tracking &amp; Trends</h3>
+          <p>Every audit is automatically scored and plotted. See where you're improving and where you're not — at a glance.</p>
+        </div>
+        <div class="feature-card fade-up delay-1">
+          <div class="feature-icon yellow">⚡</div>
+          <h3>Action Item Workflow</h3>
+          <p>Findings become tasks. Tasks get assigned. Work gets done. No follow-up email required.</p>
+        </div>
+        <div class="feature-card fade-up delay-2">
+          <div class="feature-icon navy">✦</div>
+          <h3>AI-Powered Summaries</h3>
+          <p>After every audit, Pulse writes a plain-language summary you can paste straight into your ops update. Done.</p>
+        </div>
+        <div class="feature-card fade-up delay-3">
+          <div class="feature-icon sky">🔐</div>
+          <h3>Role-Based Access</h3>
+          <p>You run the program. Area owners do their part. Leadership sees what they need. Everyone's in the right lane.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── SOCIAL PROOF ─── -->
+  <section class="social-proof">
+    <div class="container">
+      <div class="section-label fade-up" style="color:#5BB8D4;">From the people using it</div>
+      <h2 class="section-headline fade-up delay-1">Built for the floor.<br>Loved by the people who own it.</h2>
+      <p class="section-sub fade-up delay-2">These aren't edge cases. This is what happens when OE teams finally have the right tool.</p>
+    </div>
+
+    <div class="testimonials-grid container">
+      <div class="testimonial-card fade-up delay-1">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-quote">I used to spend two hours every month just consolidating audit scores into a report. With Pulse, my dashboard is always ready. I don't even think about it anymore.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-name">Maria T.</div>
+          <div class="testimonial-role">CI Manager, Medical Device Manufacturing</div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-up delay-2">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-quote">Our area owners actually use it. That's the part I didn't expect. The audit takes less than 5 minutes on their phone. Before Pulse, getting anyone to fill out a paper form was a whole project.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-name">James R.</div>
+          <div class="testimonial-role">OE Lead, Biotech</div>
+        </div>
+      </div>
+      <div class="testimonial-card fade-up delay-3">
+        <div class="stars">★★★★★</div>
+        <p class="testimonial-quote">The AI summary after each audit is my favorite feature. It writes the ops update for me. My VP always comments on how clear and consistent our reporting has gotten. I just smile.</p>
+        <div class="testimonial-author">
+          <div class="testimonial-name">Deb K.</div>
+          <div class="testimonial-role">Senior OE Manager, Life Sciences</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="proof-cta fade-up">
+      <p class="proof-cta-headline">Ready to take the pulse of your operation?</p>
+      <a href="#" class="btn btn-yellow">Start Free Trial</a>
+    </div>
+  </section>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">Pulse<span></span></div>
+        <div class="footer-tagline">Take the vital signs of your operation.</div>
+      </div>
+      <div class="footer-right">
+        &copy; 2026 Pulse. Built for the floor.
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── JS ─── -->
+  <script>
+    // Mobile menu toggle
+    function toggleMenu() {
+      const menu = document.getElementById('mobileMenu');
+      menu.classList.toggle('open');
+    }
+
+    // Scroll animation via IntersectionObserver
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+        }
+      });
+    }, {
+      threshold: 0.1,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    document.querySelectorAll('.fade-up').forEach(el => {
+      observer.observe(el);
+    });
+
+    // Sticky navbar shadow on scroll
+    const navbar = document.querySelector('.navbar');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 10) {
+        navbar.style.boxShadow = '0 2px 20px rgba(45, 50, 114, 0.08)';
+      } else {
+        navbar.style.boxShadow = 'none';
+      }
+    });
+  </script>
+</body>
+</html>
