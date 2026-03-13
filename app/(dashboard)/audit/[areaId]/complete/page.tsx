@@ -117,9 +117,9 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
       ) : null}
 
       {/* Action items callout */}
-      {(actionCount ?? 0) > 0 ? (
-        <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-5 mb-8">
-          <div className="flex items-center justify-between gap-4">
+      {(actionCount ?? 0) > 0 && (
+        <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-5 mb-4">
+          <div className="flex items-start justify-between gap-4">
             <div>
               <p
                 className="text-sm font-bold mb-0.5"
@@ -128,34 +128,38 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
                 {actionCount} action {actionCount === 1 ? 'item' : 'items'} created
               </p>
               <p className="text-sm" style={{ color: '#5B7FA6' }}>
-                AI-enhanced descriptions ready to assign.
+                AI-enhanced descriptions, due in 14 days.
               </p>
             </div>
-            <Link
-              href="/actions"
-              className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-              style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            <span
+              className="flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-full"
+              style={{ background: '#FDECEA', color: '#C62828', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              Review →
-            </Link>
+              Open
+            </span>
           </div>
         </div>
-      ) : (
-        <div className="mb-8" />
       )}
 
       {/* CTAs */}
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-3 mt-4">
         <Link
-          href={`/audit/${areaId}`}
+          href="/actions"
           className="w-full py-3.5 rounded-xl text-sm font-bold text-white text-center block"
           style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        >
+          View Action Items
+        </Link>
+        <Link
+          href={`/audit/${areaId}`}
+          className="w-full py-3.5 rounded-xl text-sm font-semibold text-center block border border-[#d1dae6]"
+          style={{ color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           Start Another Audit
         </Link>
         <Link
           href="/dashboard"
-          className="w-full py-3.5 rounded-xl text-sm font-semibold text-center block border border-[#d1dae6]"
+          className="w-full py-3.5 rounded-xl text-sm font-semibold text-center block"
           style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           Back to Dashboard

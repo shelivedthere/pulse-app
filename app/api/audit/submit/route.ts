@@ -122,6 +122,10 @@ export async function POST(req: NextRequest) {
       }
 
       // ─── 5. Create action items ───────────────────────────────
+      const dueDate = new Date()
+      dueDate.setDate(dueDate.getDate() + 14)
+      const dueDateStr = dueDate.toISOString().split('T')[0] // YYYY-MM-DD
+
       const { error: actionsError } = await supabase
         .from('action_items')
         .insert(
@@ -130,13 +134,13 @@ export async function POST(req: NextRequest) {
             area_id: areaId,
             audit_id: audit.id,
             audit_item_score_id: scoreIdMap.get(f.templateItemId) ?? null,
-            // Use AI description if available, fall back to raw note, then item description
             description:
               aiDescriptions[f.templateItemId] ??
               f.note ??
               f.description,
             raw_finding: f.note ?? null,
             status: 'open',
+            due_date: dueDateStr,
             created_by: user.id,
           }))
         )
