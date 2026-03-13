@@ -186,8 +186,8 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
               </span>
             </div>
 
-            {/* Start Audit button */}
-            <div className="mt-auto pt-1">
+            {/* Actions */}
+            <div className="mt-auto pt-1 flex items-center gap-3">
               <Link
                 href={`/audit/${area.id}`}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors"
@@ -198,6 +198,13 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
                 }}
               >
                 Start Audit →
+              </Link>
+              <Link
+                href={`/areas/${area.id}/settings`}
+                className="text-sm font-semibold transition-colors"
+                style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                Customize Checklist
               </Link>
             </div>
           </div>
