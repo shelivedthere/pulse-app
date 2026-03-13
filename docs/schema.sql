@@ -238,7 +238,10 @@ $$;
 
 create policy "Users can view their own organization"
   on public.organizations for select
-  using (id = public.get_user_org_id());
+  using (
+    id = public.get_user_org_id()
+    or created_by = auth.uid()
+  );
 
 create policy "Authenticated users can create an organization"
   on public.organizations for insert
@@ -265,7 +268,14 @@ create policy "Users can insert their own profile"
 
 create policy "Users can update own profile; admins can update org members"
   on public.profiles for update
-  using (id = auth.uid() or (org_id = public.get_user_org_id() and public.is_org_admin()));
+  using (
+    id = auth.uid()
+    or (org_id = public.get_user_org_id() and public.is_org_admin())
+  )
+  with check (
+    id = auth.uid()
+    or (org_id = public.get_user_org_id() and public.is_org_admin())
+  );
 
 create policy "Admins can delete org member profiles"
   on public.profiles for delete
