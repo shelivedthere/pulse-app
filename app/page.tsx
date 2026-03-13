@@ -51,9 +51,9 @@ export default function Home() {
           <ul className="navbar-links">
             <li><a href="#features">Features</a></li>
             <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#signin">Sign In</a></li>
+            <li><a href="/login">Sign In</a></li>
           </ul>
-          <a href="#" className="btn btn-primary" style={{display:'flex'}}>Start Free Trial</a>
+          <a href="/signup" className="btn btn-primary" style={{display:'flex'}}>Start Free Trial</a>
           <button className="hamburger" aria-label="Menu" onClick={toggleMenu}>
             <span></span><span></span><span></span>
           </button>
@@ -61,8 +61,8 @@ export default function Home() {
         <div className="mobile-menu" id="mobileMenu">
           <a href="#features">Features</a>
           <a href="#pricing">Pricing</a>
-          <a href="#signin">Sign In</a>
-          <a href="#" className="btn btn-primary">Start Free Trial</a>
+          <a href="/login">Sign In</a>
+          <a href="/signup" className="btn btn-primary">Start Free Trial</a>
         </div>
       </nav>
 
