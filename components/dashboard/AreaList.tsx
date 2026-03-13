@@ -8,12 +8,27 @@ type Area = {
   id: string
   name: string
   created_at: string
+  latestScore: number | null
+  lastAuditDate: string | null
+  openItemCount: number
 }
 
 interface Props {
   initialAreas: Area[]
   orgId: string
   userId: string
+}
+
+function scoreColor(score: number | null): string {
+  if (score == null) return '#5B7FA6'
+  if (score >= 80) return '#2DA870'
+  if (score >= 60) return '#F5D800'
+  return '#E53935'
+}
+
+function formatDate(dateStr: string | null): string {
+  if (!dateStr) return ''
+  return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
 export default function AreaList({ initialAreas, orgId, userId }: Props) {
@@ -25,16 +40,11 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
 
   async function handleAddArea(e: React.FormEvent) {
     e.preventDefault()
-
     const name = areaName.trim()
-    if (!name) {
-      setFormError('Area name is required.')
-      return
-    }
+    if (!name) { setFormError('Area name is required.'); return }
 
     setFormError(null)
     setLoading(true)
-
     try {
       const supabase = createClient()
       const { data, error } = await supabase
@@ -43,13 +53,9 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
         .select('id, name, created_at')
         .single()
 
-      if (error || !data) {
-        setFormError('Failed to add area. Please try again.')
-        setLoading(false)
-        return
-      }
+      if (error || !data) { setFormError('Failed to add area. Please try again.'); return }
 
-      setAreas(prev => [...prev, data])
+      setAreas(prev => [...prev, { ...data, latestScore: null, lastAuditDate: null, openItemCount: 0 }])
       setAreaName('')
       setShowForm(false)
     } catch {
@@ -57,12 +63,6 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
     } finally {
       setLoading(false)
     }
-  }
-
-  function handleCancel() {
-    setShowForm(false)
-    setAreaName('')
-    setFormError(null)
   }
 
   // ── Empty state ──────────────────────────────────────────────
@@ -95,10 +95,9 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
     )
   }
 
-  // ── Areas list ───────────────────────────────────────────────
   return (
     <div>
-      {/* Add Area form */}
+      {/* Add area form */}
       {showForm && (
         <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 mb-6">
           <h3
@@ -112,29 +111,24 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
               type="text"
               autoFocus
               value={areaName}
-              onChange={e => {
-                setAreaName(e.target.value)
-                if (formError) setFormError(null)
-              }}
+              onChange={e => { setAreaName(e.target.value); if (formError) setFormError(null) }}
               placeholder="e.g. Warehouse, Lab A, Production Floor 2"
               className="w-full rounded-lg border border-[#d1dae6] px-4 py-2.5 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
               style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
             />
-            {formError && (
-              <p className="text-sm text-red-600">{formError}</p>
-            )}
+            {formError && <p className="text-sm text-red-600">{formError}</p>}
             <div className="flex gap-2 mt-1">
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60 disabled:cursor-not-allowed"
+                className="px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
                 style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 {loading ? 'Adding…' : 'Add area'}
               </button>
               <button
                 type="button"
-                onClick={handleCancel}
+                onClick={() => { setShowForm(false); setAreaName(''); setFormError(null) }}
                 className="px-4 py-2 rounded-lg text-sm font-semibold border border-[#d1dae6]"
                 style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
@@ -145,7 +139,7 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
         </div>
       )}
 
-      {/* Add Area button (when areas exist and form is hidden) */}
+      {/* Add area button */}
       {!showForm && (
         <div className="flex justify-end mb-5">
           <button
@@ -160,55 +154,76 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
 
       {/* Area cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {areas.map(area => (
-          <div
-            key={area.id}
-            className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 flex flex-col gap-4"
-          >
-            {/* Area name */}
-            <h3
-              className="text-lg font-extrabold leading-tight"
-              style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        {areas.map(area => {
+          const color = scoreColor(area.latestScore)
+          const hasScore = area.latestScore != null
+
+          return (
+            <div
+              key={area.id}
+              className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 flex flex-col gap-3"
             >
-              {area.name}
-            </h3>
-
-            {/* Status row */}
-            <div className="flex items-center gap-3 text-sm" style={{ color: '#5B7FA6' }}>
-              <span>No audits yet</span>
-              <span className="text-[#d1dae6]">·</span>
-              <span className="flex items-center gap-1">
-                <span
-                  className="inline-block w-2 h-2 rounded-full"
-                  style={{ background: '#F5D800' }}
-                />
-                0 open
-              </span>
-            </div>
-
-            {/* Actions */}
-            <div className="mt-auto pt-1 flex items-center gap-3">
-              <Link
-                href={`/audit/${area.id}`}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold border-2 transition-colors"
-                style={{
-                  color: '#2D8FBF',
-                  borderColor: '#2D8FBF',
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                }}
+              {/* Area name */}
+              <h3
+                className="text-lg font-extrabold leading-tight"
+                style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
-                Start Audit →
-              </Link>
-              <Link
-                href={`/areas/${area.id}/settings`}
-                className="text-sm font-semibold transition-colors"
-                style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                Customize Checklist
-              </Link>
+                {area.name}
+              </h3>
+
+              {/* Score */}
+              {hasScore ? (
+                <div
+                  className="text-4xl font-extrabold tabular-nums"
+                  style={{ color, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  {area.latestScore!.toFixed(1)}%
+                </div>
+              ) : (
+                <div
+                  className="text-sm font-semibold"
+                  style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  No audits yet
+                </div>
+              )}
+
+              {/* Meta row */}
+              <div className="flex items-center gap-3 text-sm flex-wrap" style={{ color: '#5B7FA6' }}>
+                {area.lastAuditDate && (
+                  <span>Last audit: {formatDate(area.lastAuditDate)}</span>
+                )}
+                {area.lastAuditDate && area.openItemCount > 0 && (
+                  <span className="text-[#d1dae6]">·</span>
+                )}
+                {area.openItemCount > 0 && (
+                  <span>{area.openItemCount} open {area.openItemCount === 1 ? 'item' : 'items'}</span>
+                )}
+                {!area.lastAuditDate && area.openItemCount === 0 && (
+                  <span>—</span>
+                )}
+              </div>
+
+              {/* Action buttons */}
+              <div className="mt-auto pt-1 flex items-center gap-3">
+                <Link
+                  href={`/audit/${area.id}`}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                  style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  Start Audit
+                </Link>
+                <Link
+                  href={`/areas/${area.id}`}
+                  className="px-4 py-2 rounded-lg text-sm font-semibold border border-[#d1dae6]"
+                  style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                >
+                  View Area
+                </Link>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

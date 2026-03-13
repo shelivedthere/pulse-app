@@ -2,7 +2,12 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import ActionItemList from '@/components/actions/ActionItemList'
 
-export default async function ActionsPage() {
+interface Props {
+  searchParams: Promise<{ area?: string }>
+}
+
+export default async function ActionsPage({ searchParams }: Props) {
+  const { area: initialAreaFilter } = await searchParams
   const supabase = await createServerSupabaseClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -76,6 +81,7 @@ export default async function ActionsPage() {
         initialItems={items}
         areas={areas ?? []}
         orgId={orgId}
+        initialAreaFilter={initialAreaFilter ?? 'all'}
       />
     </div>
   )

@@ -2,6 +2,10 @@ import { redirect } from 'next/navigation'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import AreaList from '@/components/dashboard/AreaList'
 
+function fmt(n: number | null, decimals = 1) {
+  return n == null ? '--' : n.toFixed(decimals)
+}
+
 export default async function DashboardPage() {
   const supabase = await createServerSupabaseClient()
 
@@ -14,12 +18,17 @@ export default async function DashboardPage() {
     .eq('id', user.id)
     .single()
 
-  // No org means onboarding wasn't completed
   if (!profile?.org_id) redirect('/onboarding')
 
   const orgId: string = profile.org_id
 
-  const [{ data: org }, { data: areas }] = await Promise.all([
+  // Fetch org, areas, and all audit/action data in parallel
+  const [
+    { data: org },
+    { data: areas },
+    { data: allAudits },
+    { data: openItems },
+  ] = await Promise.all([
     supabase
       .from('organizations')
       .select('id, name')
@@ -30,12 +39,68 @@ export default async function DashboardPage() {
       .select('id, name, created_at')
       .eq('org_id', orgId)
       .order('created_at', { ascending: true }),
+    supabase
+      .from('audits')
+      .select('area_id, score, submitted_at')
+      .eq('org_id', orgId)
+      .order('submitted_at', { ascending: false }),
+    supabase
+      .from('action_items')
+      .select('area_id')
+      .eq('org_id', orgId)
+      .eq('status', 'open'),
   ])
+
+  // ── Build per-area lookup maps ──────────────────────────────
+  // Latest audit per area (allAudits is DESC so first hit = latest)
+  const latestAuditMap = new Map<string, { score: number | null; submitted_at: string }>()
+  for (const audit of allAudits ?? []) {
+    if (!latestAuditMap.has(audit.area_id)) {
+      latestAuditMap.set(audit.area_id, audit)
+    }
+  }
+
+  // Open item count per area
+  const openItemsMap = new Map<string, number>()
+  for (const item of openItems ?? []) {
+    openItemsMap.set(item.area_id, (openItemsMap.get(item.area_id) ?? 0) + 1)
+  }
+
+  // ── Summary stats ────────────────────────────────────────────
+  const latestScores = [...latestAuditMap.values()]
+    .map(a => a.score)
+    .filter((s): s is number => s != null)
+
+  const avgScore =
+    latestScores.length > 0
+      ? latestScores.reduce((sum, s) => sum + s, 0) / latestScores.length
+      : null
+
+  const totalOpenItems = openItems?.length ?? 0
+
+  const startOfMonth = new Date(
+    new Date().getFullYear(),
+    new Date().getMonth(),
+    1
+  ).toISOString()
+  const areasAuditedThisMonth = new Set(
+    (allAudits ?? [])
+      .filter(a => a.submitted_at >= startOfMonth)
+      .map(a => a.area_id)
+  ).size
+
+  // ── Enrich areas ─────────────────────────────────────────────
+  const enrichedAreas = (areas ?? []).map(area => ({
+    ...area,
+    latestScore: latestAuditMap.get(area.id)?.score ?? null,
+    lastAuditDate: latestAuditMap.get(area.id)?.submitted_at ?? null,
+    openItemCount: openItemsMap.get(area.id) ?? 0,
+  }))
 
   return (
     <div className="max-w-[1120px] mx-auto px-6 py-10">
       {/* Page header */}
-      <div className="mb-10">
+      <div className="mb-8">
         <p
           className="text-xs font-bold uppercase tracking-wider mb-1"
           style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
@@ -50,6 +115,51 @@ export default async function DashboardPage() {
         </h1>
       </div>
 
+      {/* Summary bar */}
+      {enrichedAreas.length > 0 && (
+        <div className="grid grid-cols-3 gap-3 mb-10">
+          {[
+            {
+              label: 'Avg Score',
+              value: avgScore != null ? `${fmt(avgScore)}%` : '--',
+              color: avgScore == null
+                ? '#5B7FA6'
+                : avgScore >= 80 ? '#2DA870'
+                : avgScore >= 60 ? '#F5D800'
+                : '#E53935',
+            },
+            {
+              label: 'Open Items',
+              value: String(totalOpenItems),
+              color: totalOpenItems > 0 ? '#E53935' : '#2DA870',
+            },
+            {
+              label: 'Audited This Month',
+              value: String(areasAuditedThisMonth),
+              color: '#2D3272',
+            },
+          ].map(stat => (
+            <div
+              key={stat.label}
+              className="bg-white rounded-xl border border-[#e8edf2] shadow-sm px-4 py-4 text-center"
+            >
+              <div
+                className="text-2xl font-extrabold tabular-nums mb-0.5"
+                style={{ color: stat.color, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                {stat.value}
+              </div>
+              <div
+                className="text-xs font-semibold"
+                style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                {stat.label}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Areas section */}
       <section>
         <h2
@@ -59,7 +169,7 @@ export default async function DashboardPage() {
           Areas
         </h2>
         <AreaList
-          initialAreas={areas ?? []}
+          initialAreas={enrichedAreas}
           orgId={orgId}
           userId={user.id}
         />

@@ -22,6 +22,7 @@ interface Props {
   initialItems: ActionItem[]
   areas: Area[]
   orgId: string
+  initialAreaFilter?: string
 }
 
 const STATUS_LABELS: Record<StatusValue, string> = {
@@ -52,9 +53,9 @@ function dueDateDisplay(due_date: string | null): { label: string; color: string
   return { label, color: '#5B7FA6' }
 }
 
-export default function ActionItemList({ initialItems, areas }: Props) {
+export default function ActionItemList({ initialItems, areas, initialAreaFilter = 'all' }: Props) {
   const [items, setItems] = useState<ActionItem[]>(initialItems)
-  const [areaFilter, setAreaFilter] = useState('all')
+  const [areaFilter, setAreaFilter] = useState(initialAreaFilter)
   const [statusFilter, setStatusFilter] = useState('all')
   const [ownerDraft, setOwnerDraft] = useState<Record<string, string>>({})
   const [savingId, setSavingId] = useState<string | null>(null)
