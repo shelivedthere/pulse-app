@@ -35,26 +35,15 @@ export async function POST(req: NextRequest) {
       }, { status: 403 })
     }
 
-    // Update profile: set org_id and role
+    // Update profile: set org_id, role, and assigned area
     const { error: profileError } = await service
       .from('profiles')
-      .update({ org_id: invitation.org_id, role: 'contributor' })
+      .update({ org_id: invitation.org_id, role: 'contributor', assigned_area_id: invitation.area_id })
       .eq('id', user.id)
 
     if (profileError) {
       console.error('Failed to update profile:', profileError)
       return NextResponse.json({ error: 'Failed to accept invitation. Please try again.' }, { status: 500 })
-    }
-
-    // Create area assignment
-    const { error: assignError } = await service
-      .from('area_assignments')
-      .insert({ org_id: invitation.org_id, user_id: user.id, area_id: invitation.area_id })
-
-    if (assignError && assignError.code !== '23505') {
-      // 23505 = unique violation (already assigned) — treat as success
-      console.error('Failed to create area assignment:', assignError)
-      return NextResponse.json({ error: 'Failed to complete setup. Please try again.' }, { status: 500 })
     }
 
     // Mark invitation as accepted

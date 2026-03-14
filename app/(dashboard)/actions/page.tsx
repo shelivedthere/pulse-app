@@ -15,7 +15,7 @@ export default async function ActionsPage({ searchParams }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('org_id, role')
+    .select('org_id, role, assigned_area_id')
     .eq('id', user.id)
     .single()
 
@@ -31,16 +31,10 @@ export default async function ActionsPage({ searchParams }: Props) {
     .eq('org_id', orgId)
     .order('name', { ascending: true })
 
-  // For contributors: scope to their assigned areas
+  // For contributors: scope to their assigned area
   let allowedAreaIds: string[] | null = null
   if (!isAdmin) {
-    const { data: assignments } = await supabase
-      .from('area_assignments')
-      .select('area_id')
-      .eq('user_id', user.id)
-      .eq('org_id', orgId)
-
-    allowedAreaIds = (assignments ?? []).map(a => a.area_id)
+    allowedAreaIds = profile.assigned_area_id ? [profile.assigned_area_id] : []
   }
 
   // Fetch action items — join area name via separate map to keep types clean

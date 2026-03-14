@@ -16,7 +16,7 @@ export default async function AuditPage({ params }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('org_id, role')
+    .select('org_id, role, assigned_area_id')
     .eq('id', user.id)
     .single()
 
@@ -26,16 +26,8 @@ export default async function AuditPage({ params }: Props) {
   const isAdmin = profile.role === 'admin'
 
   // For contributors: verify they're assigned to this area
-  if (!isAdmin) {
-    const { data: assignment } = await supabase
-      .from('area_assignments')
-      .select('id')
-      .eq('user_id', user.id)
-      .eq('area_id', areaId)
-      .eq('org_id', orgId)
-      .single()
-
-    if (!assignment) redirect('/dashboard')
+  if (!isAdmin && profile.assigned_area_id !== areaId) {
+    redirect('/dashboard')
   }
 
   // Verify area belongs to this org

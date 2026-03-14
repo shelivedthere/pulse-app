@@ -19,7 +19,7 @@ export default async function DashboardPage({ searchParams }: Props) {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('org_id, full_name, role')
+    .select('org_id, full_name, role, assigned_area_id')
     .eq('id', user.id)
     .single()
 
@@ -28,16 +28,15 @@ export default async function DashboardPage({ searchParams }: Props) {
   const orgId: string = profile.org_id
   const isAdmin = profile.role === 'admin'
 
-  // For contributors, fetch their assigned area IDs
-  let assignedAreaIds: string[] | null = null
-  if (!isAdmin) {
-    const { data: assignments } = await supabase
-      .from('area_assignments')
-      .select('area_id')
-      .eq('user_id', user.id)
-      .eq('org_id', orgId)
+  // Build the areas query — contributors see only their assigned area
+  const areasQuery = supabase
+    .from('areas')
+    .select('id, name, created_at')
+    .eq('org_id', orgId)
+    .order('created_at', { ascending: true })
 
-    assignedAreaIds = (assignments ?? []).map(a => a.area_id)
+  if (!isAdmin && profile.assigned_area_id) {
+    areasQuery.eq('id', profile.assigned_area_id)
   }
 
   // Fetch org, areas, and all audit/action data in parallel
@@ -52,11 +51,7 @@ export default async function DashboardPage({ searchParams }: Props) {
       .select('id, name')
       .eq('id', orgId)
       .single(),
-    supabase
-      .from('areas')
-      .select('id, name, created_at')
-      .eq('org_id', orgId)
-      .order('created_at', { ascending: true }),
+    areasQuery,
     supabase
       .from('audits')
       .select('area_id, score, submitted_at')
@@ -69,10 +64,10 @@ export default async function DashboardPage({ searchParams }: Props) {
       .eq('status', 'open'),
   ])
 
-  // Filter areas to assigned ones for contributors
+  // Contributors with no assigned_area_id see an empty list
   const areas = isAdmin
     ? (allAreas ?? [])
-    : (allAreas ?? []).filter(a => assignedAreaIds!.includes(a.id))
+    : profile.assigned_area_id ? (allAreas ?? []) : []
 
   // ── Build per-area lookup maps ──────────────────────────────
   const latestAuditMap = new Map<string, { score: number | null; submitted_at: string }>()

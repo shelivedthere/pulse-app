@@ -42,7 +42,7 @@ export default async function SettingsPage({ searchParams }: Props) {
     : { data: [] }
 
   // ── Team tab data ────────────────────────────────────────────
-  const [{ data: areas }, { data: contributors }, { data: assignments }, { data: invitations }] =
+  const [{ data: areas }, { data: contributors }, { data: invitations }] =
     await Promise.all([
       supabase
         .from('areas')
@@ -51,13 +51,9 @@ export default async function SettingsPage({ searchParams }: Props) {
         .order('name', { ascending: true }),
       supabase
         .from('profiles')
-        .select('id, full_name, email, role')
+        .select('id, full_name, email, role, assigned_area_id')
         .eq('org_id', orgId)
         .eq('role', 'contributor'),
-      supabase
-        .from('area_assignments')
-        .select('user_id, area_id')
-        .eq('org_id', orgId),
       supabase
         .from('invitations')
         .select('id, email, area_id, created_at, accepted_at')
@@ -69,19 +65,11 @@ export default async function SettingsPage({ searchParams }: Props) {
   const areaMap = new Map<string, string>()
   for (const a of areas ?? []) areaMap.set(a.id, a.name)
 
-  // Build assignment map: user_id → area names
-  const assignmentMap = new Map<string, string[]>()
-  for (const a of assignments ?? []) {
-    const list = assignmentMap.get(a.user_id) ?? []
-    list.push(areaMap.get(a.area_id) ?? 'Unknown')
-    assignmentMap.set(a.user_id, list)
-  }
-
   const teamMembers = (contributors ?? []).map(c => ({
     id: c.id,
     full_name: c.full_name ?? '(no name)',
     email: c.email ?? '',
-    areas: assignmentMap.get(c.id) ?? [],
+    areas: c.assigned_area_id ? [areaMap.get(c.assigned_area_id) ?? 'Unknown'] : [],
   }))
 
   const pendingInvitations = (invitations ?? [])
