@@ -17,6 +17,7 @@ interface Props {
   initialAreas: Area[]
   orgId: string
   userId: string
+  isAdmin: boolean
 }
 
 function scoreColor(score: number | null): string {
@@ -31,7 +32,7 @@ function formatDate(dateStr: string | null): string {
   return new Date(dateStr).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 }
 
-export default function AreaList({ initialAreas, orgId, userId }: Props) {
+export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props) {
   const [areas, setAreas] = useState<Area[]>(initialAreas)
   const [showForm, setShowForm] = useState(false)
   const [areaName, setAreaName] = useState('')
@@ -79,26 +80,30 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
           className="text-xl font-extrabold mb-2"
           style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
-          No areas yet
+          {isAdmin ? 'No areas yet' : 'No areas assigned'}
         </h2>
         <p className="text-sm mb-8 max-w-xs" style={{ color: '#5B7FA6' }}>
-          Add your first area — a warehouse, lab, or production floor — to start running audits.
+          {isAdmin
+            ? 'Add your first area — a warehouse, lab, or production floor — to start running audits.'
+            : 'You haven\'t been assigned to any areas yet. Contact your administrator to get access.'}
         </p>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-6 py-3 rounded-lg text-sm font-semibold text-white"
-          style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          + Add your first area
-        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-6 py-3 rounded-lg text-sm font-semibold text-white"
+            style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
+            + Add your first area
+          </button>
+        )}
       </div>
     )
   }
 
   return (
     <div>
-      {/* Add area form */}
-      {showForm && (
+      {/* Add area form — admin only */}
+      {isAdmin && showForm && (
         <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 mb-6">
           <h3
             className="text-base font-bold mb-4"
@@ -139,8 +144,8 @@ export default function AreaList({ initialAreas, orgId, userId }: Props) {
         </div>
       )}
 
-      {/* Add area button */}
-      {!showForm && (
+      {/* Add area button — admin only */}
+      {isAdmin && !showForm && (
         <div className="flex justify-end mb-5">
           <button
             onClick={() => setShowForm(true)}

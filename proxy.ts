@@ -31,8 +31,9 @@ export async function proxy(req: NextRequest) {
 
   const { pathname } = req.nextUrl
 
-  // Protect /dashboard and /onboarding — redirect unauthenticated users to /login
-  if (!session && (pathname.startsWith('/dashboard') || pathname.startsWith('/onboarding'))) {
+  // Protect app routes — redirect unauthenticated users to /login
+  const protectedPrefixes = ['/dashboard', '/onboarding', '/audit', '/areas', '/actions', '/settings']
+  if (!session && protectedPrefixes.some(p => pathname.startsWith(p))) {
     return NextResponse.redirect(new URL('/login', req.url))
   }
 
@@ -45,5 +46,14 @@ export async function proxy(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/onboarding/:path*', '/login', '/signup'],
+  matcher: [
+    '/dashboard/:path*',
+    '/onboarding/:path*',
+    '/audit/:path*',
+    '/areas/:path*',
+    '/actions/:path*',
+    '/settings/:path*',
+    '/login',
+    '/signup',
+  ],
 }

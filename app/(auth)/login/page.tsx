@@ -1,12 +1,22 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
+  )
+}
+
+function LoginForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -37,7 +47,9 @@ export default function LoginPage() {
         .eq('id', user.id)
         .single()
 
-      if (profile?.org_id) {
+      if (redirectTo) {
+        router.push(redirectTo)
+      } else if (profile?.org_id) {
         router.push('/dashboard')
       } else {
         router.push('/onboarding')
@@ -152,3 +164,4 @@ export default function LoginPage() {
     </div>
   )
 }
+

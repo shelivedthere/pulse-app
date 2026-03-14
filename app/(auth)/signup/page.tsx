@@ -1,17 +1,33 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { Suspense, useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 
 export default function SignupPage() {
+  return (
+    <Suspense>
+      <SignupForm />
+    </Suspense>
+  )
+}
+
+function SignupForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const inviteToken = searchParams.get('invite')
+  const inviteEmail = searchParams.get('email') ?? ''
+
   const [fullName, setFullName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(inviteEmail)
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (inviteEmail) setEmail(inviteEmail)
+  }, [inviteEmail])
 
   async function handleSignup(e: React.FormEvent) {
     e.preventDefault()
@@ -44,8 +60,13 @@ export default function SignupPage() {
         .eq('id', user.id)
     }
 
-    // New users always go to /onboarding to create their organization
-    router.push('/onboarding')
+    // If signing up via invite, go to the invite acceptance page
+    if (inviteToken) {
+      router.push(`/invite/${inviteToken}`)
+    } else {
+      // New users always go to /onboarding to create their organization
+      router.push('/onboarding')
+    }
   }
 
   return (
@@ -75,10 +96,12 @@ export default function SignupPage() {
           className="text-2xl font-extrabold mb-1 tracking-tight"
           style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
-          Create your account
+          {inviteToken ? 'Create your account' : 'Create your account'}
         </h1>
         <p className="text-sm mb-8" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-          Get started — free forever for solo practitioners.
+          {inviteToken
+            ? 'Set up your account to accept the invitation.'
+            : 'Get started — free forever for solo practitioners.'}
         </p>
 
         <form onSubmit={handleSignup} className="flex flex-col gap-5">
@@ -119,9 +142,19 @@ export default function SignupPage() {
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="you@company.com"
+              readOnly={!!inviteToken && !!inviteEmail}
               className="w-full rounded-lg border border-[#d1dae6] px-4 py-3 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
-              style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
+              style={{
+                color: '#252850',
+                fontFamily: "'Inter', sans-serif",
+                background: inviteToken && inviteEmail ? '#f8f9fb' : undefined,
+              }}
             />
+            {inviteToken && inviteEmail && (
+              <p className="text-xs" style={{ color: '#5B7FA6' }}>
+                This email matches your invitation and cannot be changed.
+              </p>
+            )}
           </div>
 
           <div className="flex flex-col gap-1.5">
@@ -172,7 +205,11 @@ export default function SignupPage() {
 
       <p className="text-center text-sm mt-6" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
         Already have an account?{' '}
-        <Link href="/login" className="font-semibold" style={{ color: '#2D8FBF' }}>
+        <Link
+          href={inviteToken ? `/login?redirect=/invite/${inviteToken}` : '/login'}
+          className="font-semibold"
+          style={{ color: '#2D8FBF' }}
+        >
           Sign in
         </Link>
       </p>

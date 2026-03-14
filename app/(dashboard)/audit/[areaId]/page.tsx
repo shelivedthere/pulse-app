@@ -23,6 +23,20 @@ export default async function AuditPage({ params }: Props) {
   if (!profile?.org_id) redirect('/onboarding')
 
   const orgId: string = profile.org_id
+  const isAdmin = profile.role === 'admin'
+
+  // For contributors: verify they're assigned to this area
+  if (!isAdmin) {
+    const { data: assignment } = await supabase
+      .from('area_assignments')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('area_id', areaId)
+      .eq('org_id', orgId)
+      .single()
+
+    if (!assignment) redirect('/dashboard')
+  }
 
   // Verify area belongs to this org
   const { data: area } = await supabase

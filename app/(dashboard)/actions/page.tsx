@@ -31,16 +31,16 @@ export default async function ActionsPage({ searchParams }: Props) {
     .eq('org_id', orgId)
     .order('name', { ascending: true })
 
-  // For contributors: scope to areas where they've conducted audits
+  // For contributors: scope to their assigned areas
   let allowedAreaIds: string[] | null = null
   if (!isAdmin) {
-    const { data: conducted } = await supabase
-      .from('audits')
+    const { data: assignments } = await supabase
+      .from('area_assignments')
       .select('area_id')
+      .eq('user_id', user.id)
       .eq('org_id', orgId)
-      .eq('conducted_by', user.id)
 
-    allowedAreaIds = [...new Set((conducted ?? []).map(a => a.area_id))]
+    allowedAreaIds = (assignments ?? []).map(a => a.area_id)
   }
 
   // Fetch action items — join area name via separate map to keep types clean
@@ -56,7 +56,7 @@ export default async function ActionsPage({ searchParams }: Props) {
       return (
         <div className="max-w-[1120px] mx-auto px-6 py-10">
           <PageHeader isAdmin={false} />
-          <EmptyState message="You haven't conducted any audits yet. Start an audit to generate action items." />
+          <EmptyState message="You haven't been assigned to any areas yet. Contact your administrator to get access." />
         </div>
       )
     }

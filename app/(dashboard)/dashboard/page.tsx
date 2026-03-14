@@ -6,7 +6,12 @@ function fmt(n: number | null, decimals = 1) {
   return n == null ? '--' : n.toFixed(decimals)
 }
 
-export default async function DashboardPage() {
+interface Props {
+  searchParams: Promise<{ notice?: string }>
+}
+
+export default async function DashboardPage({ searchParams }: Props) {
+  const { notice } = await searchParams
   const supabase = await createServerSupabaseClient()
 
   const { data: { user } } = await supabase.auth.getUser()
@@ -21,11 +26,24 @@ export default async function DashboardPage() {
   if (!profile?.org_id) redirect('/onboarding')
 
   const orgId: string = profile.org_id
+  const isAdmin = profile.role === 'admin'
+
+  // For contributors, fetch their assigned area IDs
+  let assignedAreaIds: string[] | null = null
+  if (!isAdmin) {
+    const { data: assignments } = await supabase
+      .from('area_assignments')
+      .select('area_id')
+      .eq('user_id', user.id)
+      .eq('org_id', orgId)
+
+    assignedAreaIds = (assignments ?? []).map(a => a.area_id)
+  }
 
   // Fetch org, areas, and all audit/action data in parallel
   const [
     { data: org },
-    { data: areas },
+    { data: allAreas },
     { data: allAudits },
     { data: openItems },
   ] = await Promise.all([
@@ -51,8 +69,12 @@ export default async function DashboardPage() {
       .eq('status', 'open'),
   ])
 
+  // Filter areas to assigned ones for contributors
+  const areas = isAdmin
+    ? (allAreas ?? [])
+    : (allAreas ?? []).filter(a => assignedAreaIds!.includes(a.id))
+
   // ── Build per-area lookup maps ──────────────────────────────
-  // Latest audit per area (allAudits is DESC so first hit = latest)
   const latestAuditMap = new Map<string, { score: number | null; submitted_at: string }>()
   for (const audit of allAudits ?? []) {
     if (!latestAuditMap.has(audit.area_id)) {
@@ -60,15 +82,17 @@ export default async function DashboardPage() {
     }
   }
 
-  // Open item count per area
   const openItemsMap = new Map<string, number>()
   for (const item of openItems ?? []) {
     openItemsMap.set(item.area_id, (openItemsMap.get(item.area_id) ?? 0) + 1)
   }
 
-  // ── Summary stats ────────────────────────────────────────────
-  const latestScores = [...latestAuditMap.values()]
-    .map(a => a.score)
+  // ── Summary stats (scoped to visible areas) ──────────────────
+  const visibleAreaIds = new Set(areas.map(a => a.id))
+
+  const latestScores = [...latestAuditMap.entries()]
+    .filter(([id]) => visibleAreaIds.has(id))
+    .map(([, a]) => a.score)
     .filter((s): s is number => s != null)
 
   const avgScore =
@@ -76,7 +100,9 @@ export default async function DashboardPage() {
       ? latestScores.reduce((sum, s) => sum + s, 0) / latestScores.length
       : null
 
-  const totalOpenItems = openItems?.length ?? 0
+  const totalOpenItems = [...openItemsMap.entries()]
+    .filter(([id]) => visibleAreaIds.has(id))
+    .reduce((sum, [, count]) => sum + count, 0)
 
   const startOfMonth = new Date(
     new Date().getFullYear(),
@@ -85,12 +111,12 @@ export default async function DashboardPage() {
   ).toISOString()
   const areasAuditedThisMonth = new Set(
     (allAudits ?? [])
-      .filter(a => a.submitted_at >= startOfMonth)
+      .filter(a => a.submitted_at >= startOfMonth && visibleAreaIds.has(a.area_id))
       .map(a => a.area_id)
   ).size
 
   // ── Enrich areas ─────────────────────────────────────────────
-  const enrichedAreas = (areas ?? []).map(area => ({
+  const enrichedAreas = areas.map(area => ({
     ...area,
     latestScore: latestAuditMap.get(area.id)?.score ?? null,
     lastAuditDate: latestAuditMap.get(area.id)?.submitted_at ?? null,
@@ -99,6 +125,21 @@ export default async function DashboardPage() {
 
   return (
     <div className="max-w-[1120px] mx-auto px-6 py-10">
+      {/* Settings access notice for contributors */}
+      {notice === 'settings-admin-only' && (
+        <div
+          className="mb-6 rounded-xl border px-5 py-4 text-sm font-semibold"
+          style={{
+            background: '#FFF8E6',
+            borderColor: '#F5D800',
+            color: '#252850',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}
+        >
+          Settings are only available to administrators.
+        </div>
+      )}
+
       {/* Page header */}
       <div className="mb-8">
         <p
@@ -172,6 +213,7 @@ export default async function DashboardPage() {
           initialAreas={enrichedAreas}
           orgId={orgId}
           userId={user.id}
+          isAdmin={isAdmin}
         />
       </section>
     </div>
