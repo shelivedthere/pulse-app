@@ -76,8 +76,8 @@ export default function Home() {
               Pulse helps CI and OE teams run structured workplace audits, track scores over time, and close corrective actions — without the paper, the spreadsheets, or the chasing.
             </p>
             <div className="hero-ctas fade-up delay-3">
-              <a href="#" className="btn btn-primary btn-lg">Start Free Trial</a>
-              <a href="#" className="btn btn-outline btn-lg">See How It Works</a>
+              <a href="/signup" className="btn btn-primary btn-lg">Start Free Trial</a>
+              <a href="#features" className="btn btn-outline btn-lg">See How It Works</a>
             </div>
           </div>
 
@@ -348,7 +348,7 @@ export default function Home() {
 
         <div className="proof-cta fade-up">
           <p className="proof-cta-headline">Ready to take the pulse of your operation?</p>
-          <a href="#" className="btn btn-yellow">Start Free Trial</a>
+          <a href="/signup" className="btn btn-yellow">Start Free Trial</a>
         </div>
       </section>
 

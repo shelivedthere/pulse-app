@@ -158,12 +158,14 @@ export default async function AreaDetailPage({ params }: Props) {
               className="text-sm font-semibold mb-1"
               style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
-              Complete at least 2 audits to see your trend
+              {chartData.length === 0
+                ? 'No audits yet — start your first audit to begin tracking this area'
+                : 'Complete at least 2 audits to see your trend'}
             </p>
             <p className="text-sm mb-5" style={{ color: '#5B7FA6' }}>
               {chartData.length === 1
                 ? 'You have 1 audit — one more to go.'
-                : 'No audits yet for this area.'}
+                : 'Scores will appear here after each completed audit.'}
             </p>
             <Link
               href={`/audit/${areaId}`}

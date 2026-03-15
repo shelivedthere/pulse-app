@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import AreaList from '@/components/dashboard/AreaList'
 
@@ -118,8 +119,67 @@ export default async function DashboardPage({ searchParams }: Props) {
     openItemCount: openItemsMap.get(area.id) ?? 0,
   }))
 
+  // ── Getting Started checklist (admin only) ────────────────────
+  const hasAreas = (allAreas ?? []).length > 0
+  const hasAudit = (allAudits ?? []).length > 0
+  const showGettingStarted = isAdmin && (!hasAreas || !hasAudit)
+
   return (
     <div className="max-w-[1120px] mx-auto px-6 py-10">
+      {/* Getting Started banner */}
+      {showGettingStarted && (
+        <div
+          className="mb-8 rounded-xl border px-6 py-5"
+          style={{ background: '#F0F7FF', borderColor: '#C2DCF5' }}
+        >
+          <p
+            className="text-sm font-extrabold mb-3"
+            style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
+            Getting Started
+          </p>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2 text-sm" style={{ color: '#252850' }}>
+              <span style={{ color: '#2DA870' }}>✓</span>
+              <span style={{ textDecoration: 'line-through', color: '#5B7FA6' }}>Create your organization</span>
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: '#252850' }}>
+              {hasAreas
+                ? <><span style={{ color: '#2DA870' }}>✓</span><span style={{ textDecoration: 'line-through', color: '#5B7FA6' }}>Add your first area</span></>
+                : <><span style={{ color: '#B0B8C9' }}>☐</span><span>Add your first area</span></>
+              }
+            </div>
+            <div className="flex items-center gap-2 text-sm" style={{ color: '#252850' }}>
+              {hasAudit
+                ? <><span style={{ color: '#2DA870' }}>✓</span><span style={{ textDecoration: 'line-through', color: '#5B7FA6' }}>Conduct your first audit</span></>
+                : <><span style={{ color: '#B0B8C9' }}>☐</span><span>Conduct your first audit</span></>
+              }
+            </div>
+          </div>
+          {!hasAreas && (
+            <div className="mt-4">
+              <span
+                className="text-xs font-semibold"
+                style={{ color: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                Start by adding an area below ↓
+              </span>
+            </div>
+          )}
+          {hasAreas && !hasAudit && (
+            <div className="mt-4">
+              <Link
+                href={`/audit/${(allAreas ?? [])[0]?.id}`}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white"
+                style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              >
+                Start your first audit →
+              </Link>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Settings access notice for contributors */}
       {notice === 'settings-admin-only' && (
         <div

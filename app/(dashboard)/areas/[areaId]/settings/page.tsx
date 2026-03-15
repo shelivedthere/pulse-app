@@ -73,11 +73,11 @@ export default async function AreaSettingsPage({ params }: Props) {
     <div className="max-w-[1120px] mx-auto px-6 py-10">
       {/* Back link */}
       <Link
-        href="/dashboard"
+        href={`/areas/${areaId}`}
         className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6"
         style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
       >
-        ← Dashboard
+        ← {area.name}
       </Link>
 
       {/* Page header */}

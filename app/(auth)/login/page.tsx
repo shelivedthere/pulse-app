@@ -17,6 +17,7 @@ function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = searchParams.get('redirect')
+  const notice = searchParams.get('notice')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -88,9 +89,18 @@ function LoginForm() {
         >
           Welcome back
         </h1>
-        <p className="text-sm mb-8" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+        <p className="text-sm mb-6" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
           Sign in to your Pulse account.
         </p>
+
+        {notice === 'expired' && (
+          <div
+            className="mb-6 rounded-lg border px-4 py-3 text-sm"
+            style={{ background: '#FFF8E6', borderColor: '#F5D800', color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          >
+            Your session expired — please sign in again.
+          </div>
+        )}
 
         <form onSubmit={handleLogin} className="flex flex-col gap-5">
           <div className="flex flex-col gap-1.5">

@@ -80,11 +80,11 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
           className="text-xl font-extrabold mb-2"
           style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
-          {isAdmin ? 'No areas yet' : 'No areas assigned'}
+          {isAdmin ? 'Welcome to Pulse!' : 'No areas assigned'}
         </h2>
         <p className="text-sm mb-8 max-w-xs" style={{ color: '#5B7FA6' }}>
           {isAdmin
-            ? 'Add your first area — a warehouse, lab, or production floor — to start running audits.'
+            ? 'Add your first work area to get started — a warehouse, lab, or production floor.'
             : 'You haven\'t been assigned to any areas yet. Contact your administrator to get access.'}
         </p>
         {isAdmin && (

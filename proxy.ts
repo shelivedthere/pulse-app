@@ -34,7 +34,11 @@ export async function proxy(req: NextRequest) {
   // Protect app routes — redirect unauthenticated users to /login
   const protectedPrefixes = ['/dashboard', '/onboarding', '/audit', '/areas', '/actions', '/settings']
   if (!session && protectedPrefixes.some(p => pathname.startsWith(p))) {
-    return NextResponse.redirect(new URL('/login', req.url))
+    // If auth cookies exist but session refresh failed, the session expired
+    const hasPriorSession = req.cookies.getAll().some(c => c.name.includes('auth-token'))
+    const loginUrl = new URL('/login', req.url)
+    if (hasPriorSession) loginUrl.searchParams.set('notice', 'expired')
+    return NextResponse.redirect(loginUrl)
   }
 
   // Redirect already-authenticated users away from auth pages

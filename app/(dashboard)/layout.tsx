@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import LogoutButton from '@/components/dashboard/LogoutButton'
+import NavClient from '@/components/dashboard/NavClient'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -19,9 +19,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-[#F5F7FA]">
       {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-[#e8edf2]">
+      <nav className="sticky top-0 z-50 bg-white border-b border-[#e8edf2] relative">
         <div
-          className="max-w-[1120px] mx-auto px-6 flex items-center justify-between"
+          className="max-w-[1120px] mx-auto px-6 flex items-stretch justify-between"
           style={{ height: '64px' }}
         >
           {/* Logo */}
@@ -38,35 +38,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </span>
           </Link>
 
-          {/* Nav links */}
-          <div className="flex items-center gap-8">
-            <Link
-              href="/dashboard"
-              className="text-sm font-semibold transition"
-              style={{ color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/actions"
-              className="text-sm font-semibold transition"
-              style={{ color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              Actions
-            </Link>
-            {isAdmin && (
-              <Link
-                href="/settings"
-                className="text-sm font-semibold transition"
-                style={{ color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                Settings
-              </Link>
-            )}
-          </div>
-
-          {/* Right: sign out */}
-          <LogoutButton />
+          {/* Nav links, user email, sign out — client component for active states + mobile */}
+          <NavClient isAdmin={isAdmin} userEmail={user?.email ?? ''} />
         </div>
       </nav>
 
