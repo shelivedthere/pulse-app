@@ -53,7 +53,7 @@ export default async function SettingsPage({ searchParams }: Props) {
         .from('profiles')
         .select('id, full_name, email, role, assigned_area_id')
         .eq('org_id', orgId)
-        .eq('role', 'contributor'),
+        .order('created_at', { ascending: true }),
       supabase
         .from('invitations')
         .select('id, email, area_id, created_at, accepted_at')
@@ -65,11 +65,12 @@ export default async function SettingsPage({ searchParams }: Props) {
   const areaMap = new Map<string, string>()
   for (const a of areas ?? []) areaMap.set(a.id, a.name)
 
-  const teamMembers = (contributors ?? []).map(c => ({
-    id: c.id,
-    full_name: c.full_name ?? '(no name)',
-    email: c.email ?? '',
-    areas: c.assigned_area_id ? [areaMap.get(c.assigned_area_id) ?? 'Unknown'] : [],
+  const teamMembers = (contributors ?? []).map(m => ({
+    id: m.id,
+    full_name: m.full_name ?? '',
+    email: m.email ?? '',
+    role: (m.role ?? 'contributor') as 'admin' | 'contributor',
+    assigned_area_id: m.assigned_area_id ?? null,
   }))
 
   const pendingInvitations = (invitations ?? [])
@@ -77,6 +78,7 @@ export default async function SettingsPage({ searchParams }: Props) {
     .map(i => ({
       id: i.id,
       email: i.email,
+      area_id: i.area_id,
       area_name: areaMap.get(i.area_id) ?? 'Unknown',
       created_at: i.created_at,
     }))

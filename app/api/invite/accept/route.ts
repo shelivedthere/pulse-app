@@ -16,7 +16,7 @@ export async function POST(req: NextRequest) {
     const service = createServiceSupabaseClient()
     const { data: invitation, error: inviteError } = await service
       .from('invitations')
-      .select('id, org_id, area_id, email, accepted_at')
+      .select('id, org_id, area_id, email, accepted_at, role')
       .eq('token', token)
       .single()
 
@@ -36,9 +36,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Update profile: set org_id, role, and assigned area
+    const inviteRole = invitation.role === 'admin' ? 'admin' : 'contributor'
     const { error: profileError } = await service
       .from('profiles')
-      .update({ org_id: invitation.org_id, role: 'contributor', assigned_area_id: invitation.area_id })
+      .update({ org_id: invitation.org_id, role: inviteRole, assigned_area_id: invitation.area_id })
       .eq('id', user.id)
 
     if (profileError) {

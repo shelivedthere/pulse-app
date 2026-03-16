@@ -5,12 +5,55 @@ import { createServiceSupabaseClient } from '@/lib/supabase/service'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 
+export async function DELETE(req: NextRequest) {
+  try {
+    const { inviteId, orgId } = await req.json()
+    if (!inviteId || !orgId) {
+      return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
+    }
+
+    const supabase = await createServerSupabaseClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 })
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('org_id, role')
+      .eq('id', user.id)
+      .single()
+
+    if (profile?.org_id !== orgId || profile?.role !== 'admin') {
+      return NextResponse.json({ error: 'Unauthorized.' }, { status: 403 })
+    }
+
+    const service = createServiceSupabaseClient()
+    const { error } = await service
+      .from('invitations')
+      .delete()
+      .eq('id', inviteId)
+      .eq('org_id', orgId)
+
+    if (error) {
+      console.error('Failed to cancel invitation:', error)
+      return NextResponse.json({ error: 'Failed to cancel invitation.' }, { status: 500 })
+    }
+
+    return NextResponse.json({ success: true })
+  } catch (err) {
+    console.error('Cancel invite error:', err)
+    return NextResponse.json({ error: 'Internal server error.' }, { status: 500 })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { email, areaId, orgId } = await req.json()
+    const { email, areaId, orgId, role = 'contributor' } = await req.json()
 
     if (!email || !areaId || !orgId) {
       return NextResponse.json({ error: 'Missing required fields.' }, { status: 400 })
+    }
+    if (role !== 'admin' && role !== 'contributor') {
+      return NextResponse.json({ error: 'Invalid role.' }, { status: 400 })
     }
 
     // Verify the calling user is an admin of this org
@@ -55,6 +98,7 @@ export async function POST(req: NextRequest) {
         org_id: orgId,
         email: email.toLowerCase(),
         area_id: areaId,
+        role,
         created_by: user.id,
       })
       .select('id, email, token, created_at')
