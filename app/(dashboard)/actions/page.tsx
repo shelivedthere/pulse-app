@@ -48,7 +48,7 @@ export default async function ActionsPage({ searchParams }: Props) {
     // Contributor with no areas gets an empty result
     if (allowedAreaIds.length === 0) {
       return (
-        <div className="max-w-[1120px] mx-auto px-6 py-10">
+        <div className="max-w-[1120px] mx-auto py-10">
           <PageHeader isAdmin={false} />
           <EmptyState message="You haven't been assigned to any areas yet. Contact your administrator to get access." />
         </div>

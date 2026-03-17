@@ -113,7 +113,7 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-28">
+    <div className="flex flex-col gap-4 pb-40">
       {/* Progress bar */}
       <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm px-5 py-4">
         <div className="flex items-center justify-between mb-2">
@@ -222,7 +222,7 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
 
       {/* Sticky submit bar */}
       <div
-        className="fixed bottom-0 left-0 right-0 bg-white border-t border-[#e8edf2] px-4 py-4 z-40"
+        className="fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_8px_rgba(0,0,0,0.08)] px-4 py-4 z-40"
         style={{ paddingBottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
       >
         <div className="max-w-2xl mx-auto flex flex-col gap-2">

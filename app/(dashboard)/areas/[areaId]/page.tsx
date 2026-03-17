@@ -86,7 +86,7 @@ export default async function AreaDetailPage({ params }: Props) {
   const latestDate = latestAudit ? formatDate(latestAudit.submitted_at) : null
 
   return (
-    <div className="max-w-[1120px] mx-auto px-6 py-10">
+    <div className="max-w-[1120px] mx-auto py-10">
       {/* Back link */}
       <Link
         href="/dashboard"

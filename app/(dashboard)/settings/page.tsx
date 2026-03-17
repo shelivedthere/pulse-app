@@ -86,7 +86,7 @@ export default async function SettingsPage({ searchParams }: Props) {
   const activeTab = tab === 'team' ? 'team' : 'template'
 
   return (
-    <div className="max-w-[1120px] mx-auto px-6 py-10">
+    <div className="max-w-[1120px] mx-auto py-10">
       {/* Page header */}
       <div className="mb-8">
         <h1

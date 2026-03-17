@@ -125,7 +125,7 @@ export default async function DashboardPage({ searchParams }: Props) {
   const showGettingStarted = isAdmin && (!hasAreas || !hasAudit)
 
   return (
-    <div className="max-w-[1120px] mx-auto px-6 py-10">
+    <div className="max-w-[1120px] mx-auto py-10">
       {/* Getting Started banner */}
       {showGettingStarted && (
         <div

@@ -73,7 +73,7 @@ export default async function AuditPage({ params }: Props) {
   )
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8">
+    <div className="max-w-2xl mx-auto py-8">
       <Link
         href="/dashboard"
         className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6"

@@ -23,6 +23,12 @@ function LoginForm() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
 
+  const [showReset, setShowReset] = useState(false)
+  const [resetEmail, setResetEmail] = useState('')
+  const [resetSent, setResetSent] = useState(false)
+  const [resetError, setResetError] = useState<string | null>(null)
+  const [resetLoading, setResetLoading] = useState(false)
+
   async function handleLogin(e: React.FormEvent) {
     e.preventDefault()
     setError(null)
@@ -38,7 +44,6 @@ function LoginForm() {
       return
     }
 
-    // Determine redirect: first-time users (no org) go to /onboarding
     const { data: { user } } = await supabase.auth.getUser()
 
     if (user) {
@@ -57,6 +62,25 @@ function LoginForm() {
       }
     } else {
       router.push('/onboarding')
+    }
+  }
+
+  async function handleReset(e: React.FormEvent) {
+    e.preventDefault()
+    setResetError(null)
+    setResetLoading(true)
+
+    const supabase = createClient()
+    const { error: resetErr } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+      redirectTo: `${window.location.origin}/auth/reset-password`,
+    })
+
+    setResetLoading(false)
+
+    if (resetErr) {
+      setResetError(resetErr.message)
+    } else {
+      setResetSent(true)
     }
   }
 
@@ -143,7 +167,51 @@ function LoginForm() {
               className="w-full rounded-lg border border-[#d1dae6] px-4 py-3 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
               style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
             />
+            <button
+              type="button"
+              onClick={() => { setShowReset(!showReset); setResetError(null); setResetSent(false) }}
+              className="self-start text-xs mt-0.5 hover:underline"
+              style={{ color: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            >
+              Forgot your password?
+            </button>
           </div>
+
+          {showReset && (
+            <div className="rounded-lg border border-[#d1dae6] bg-[#f7f9fc] px-4 py-4 flex flex-col gap-3">
+              {resetSent ? (
+                <p className="text-sm" style={{ color: '#2DA870', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                  Check your email for a password reset link.
+                </p>
+              ) : (
+                <>
+                  <p className="text-xs" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                    Enter your email and we&apos;ll send you a reset link.
+                  </p>
+                  <input
+                    type="email"
+                    value={resetEmail}
+                    onChange={e => setResetEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full rounded-lg border border-[#d1dae6] px-3 py-2.5 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
+                    style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
+                  />
+                  {resetError && (
+                    <p className="text-xs text-red-600">{resetError}</p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    disabled={resetLoading || !resetEmail}
+                    className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  >
+                    {resetLoading ? 'Sending…' : 'Send reset link'}
+                  </button>
+                </>
+              )}
+            </div>
+          )}
 
           {error && (
             <p className="text-sm rounded-lg bg-red-50 border border-red-200 text-red-600 px-4 py-3">
@@ -174,4 +242,3 @@ function LoginForm() {
     </div>
   )
 }
-

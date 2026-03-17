@@ -51,9 +51,24 @@ returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
+declare
+  _org_id           uuid;
+  _role             text;
+  _assigned_area_id uuid;
 begin
-  insert into public.profiles (id, email)
-  values (new.id, new.email);
+  -- Read invite metadata if present (null-safe — regular sign-ups have no metadata)
+  _org_id           := (new.raw_user_meta_data->>'org_id')::uuid;
+  _role             := new.raw_user_meta_data->>'role';
+  _assigned_area_id := (new.raw_user_meta_data->>'assigned_area_id')::uuid;
+
+  -- Validate role value — fall back to null if something unexpected was passed
+  if _role not in ('admin', 'contributor') then
+    _role := null;
+  end if;
+
+  insert into public.profiles (id, email, org_id, role, assigned_area_id)
+  values (new.id, new.email, _org_id, _role, _assigned_area_id);
+
   return new;
 end;
 $$;
@@ -178,6 +193,25 @@ create trigger action_items_updated_at
   for each row execute function public.handle_updated_at();
 
 
+-- ─── 10. invitations ──────────────────────────────────────────
+-- Custom token-based invite flow. Invited users receive an email with a
+-- link containing `token`. The accept route sets their profile's org/role.
+
+create table public.invitations (
+  id          uuid primary key default gen_random_uuid(),
+  org_id      uuid not null references public.organizations(id) on delete cascade,
+  email       text not null,
+  area_id     uuid not null references public.areas(id) on delete cascade,
+  role        text not null default 'contributor'
+                check (role in ('admin', 'contributor')),
+  token       uuid not null default gen_random_uuid(),
+  created_by  uuid references auth.users(id) on delete set null,
+  created_at  timestamptz not null default now(),
+  accepted_at timestamptz,
+  unique (token)
+);
+
+
 -- ─── Indexes ─────────────────────────────────────────────────
 
 create index on public.profiles (org_id);
@@ -194,6 +228,8 @@ create index on public.audit_item_scores (audit_id);
 create index on public.action_items (org_id);
 create index on public.action_items (area_id);
 create index on public.action_items (status);
+create index on public.invitations (org_id);
+create index on public.invitations (token);
 
 
 -- ─── Row Level Security ──────────────────────────────────────
@@ -207,6 +243,7 @@ alter table public.area_template_items enable row level security;
 alter table public.audits             enable row level security;
 alter table public.audit_item_scores  enable row level security;
 alter table public.action_items       enable row level security;
+alter table public.invitations        enable row level security;
 
 
 -- ─── RLS Helper Functions ────────────────────────────────────
@@ -413,4 +450,19 @@ create policy "Org members can update action items"
 
 create policy "Admins can delete action items"
   on public.action_items for delete
+  using (org_id = public.get_user_org_id() and public.is_org_admin());
+
+
+-- ─── RLS Policies: invitations ───────────────────────────────
+
+create policy "Admins can view org invitations"
+  on public.invitations for select
+  using (org_id = public.get_user_org_id() and public.is_org_admin());
+
+create policy "Admins can insert invitations"
+  on public.invitations for insert
+  with check (org_id = public.get_user_org_id() and public.is_org_admin());
+
+create policy "Admins can delete invitations"
+  on public.invitations for delete
   using (org_id = public.get_user_org_id() and public.is_org_admin());
