@@ -113,7 +113,7 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
   }
 
   return (
-    <div className="flex flex-col gap-4 pb-40">
+    <div className="flex flex-col gap-4 pb-40" style={{ paddingBottom: '8rem' }}>
       {/* Progress bar */}
       <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm px-5 py-4">
         <div className="flex items-center justify-between mb-2">

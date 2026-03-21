@@ -115,7 +115,7 @@ export default async function AreaDetailPage({ params }: Props) {
         <Link
           href={`/audit/${areaId}`}
           className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white self-start sm:self-auto"
-          style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           Start New Audit →
         </Link>
@@ -170,7 +170,7 @@ export default async function AreaDetailPage({ params }: Props) {
             <Link
               href={`/audit/${areaId}`}
               className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
               Start Audit
             </Link>

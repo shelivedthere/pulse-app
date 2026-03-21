@@ -171,7 +171,7 @@ export default async function DashboardPage({ searchParams }: Props) {
               <Link
                 href={`/audit/${(allAreas ?? [])[0]?.id}`}
                 className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 Start your first audit →
               </Link>

@@ -214,7 +214,7 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
                 <Link
                   href={`/audit/${area.id}`}
                   className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                  style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
                 >
                   Start Audit
                 </Link>

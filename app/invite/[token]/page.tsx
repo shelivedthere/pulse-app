@@ -45,7 +45,7 @@ export default async function InvitePage({ params }: Props) {
         <Link
           href="/dashboard"
           className="inline-block px-6 py-3 rounded-xl text-sm font-bold text-white"
-          style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           Go to Dashboard →
         </Link>
@@ -102,7 +102,7 @@ export default async function InvitePage({ params }: Props) {
             <Link
               href={`/login?redirect=/invite/${token}`}
               className="inline-block px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             >
               Sign in with {invitation.email}
             </Link>
@@ -113,7 +113,7 @@ export default async function InvitePage({ params }: Props) {
           <Link
             href={signupUrl}
             className="inline-block px-6 py-3 rounded-xl text-sm font-bold text-white text-center"
-            style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
           >
             Create account to accept →
           </Link>

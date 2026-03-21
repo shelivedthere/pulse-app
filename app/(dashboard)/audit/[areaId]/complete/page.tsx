@@ -146,7 +146,7 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
         <Link
           href="/actions"
           className="w-full py-3.5 rounded-xl text-sm font-bold text-white text-center block"
-          style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
         >
           View Action Items
         </Link>

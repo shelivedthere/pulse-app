@@ -44,7 +44,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </nav>
 
       {/* Page content */}
-      <main className="px-4 sm:px-6 lg:px-8">{children}</main>
+      <main>
+        <div style={{
+          paddingLeft: '1rem',
+          paddingRight: '1rem',
+          maxWidth: '64rem',
+          marginLeft: 'auto',
+          marginRight: 'auto',
+        }}>
+          {children}
+        </div>
+      </main>
     </div>
   )
 }

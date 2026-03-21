@@ -22,6 +22,17 @@ h1, h2, h3, h4 {
 
 img { display: block; max-width: 100%; }
 
+main {
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  main { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  main { padding-left: 2rem; padding-right: 2rem; }
+}
+
 a { color: #2D8FBF; text-decoration: none; }
 a:hover { color: #2D3272; }
 
