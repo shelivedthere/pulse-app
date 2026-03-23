@@ -48,8 +48,15 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
   if (!audit) redirect('/dashboard')
 
   const score = audit.score ?? 0
-  const scoreColor = score >= 80 ? '#2DA870' : score >= 60 ? '#F5A623' : '#E53935'
-  const scoreLabel = score >= 80 ? 'Good' : score >= 60 ? 'Needs Improvement' : 'Critical'
+
+  const scoreColor = score >= 80 ? '#2DA870' : score >= 60 ? '#F5D800' : '#ef4444'
+  const scoreTextColor = score >= 60 && score < 80 ? '#252850' : scoreColor
+
+  const scoreLabel =
+    score >= 90 ? 'Excellent ✓' :
+    score >= 80 ? 'Good' :
+    score >= 60 ? 'Needs Attention' :
+    'Action Required'
 
   const auditDate = new Date(audit.submitted_at).toLocaleDateString('en-US', {
     month: 'short',
@@ -57,113 +64,232 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
     year: 'numeric',
   })
 
+  const actions = actionCount ?? 0
+
   return (
-    <div className="max-w-2xl mx-auto py-10">
-      {/* Success header */}
-      <div className="text-center mb-8">
-        <div
-          className="inline-flex items-center justify-center w-16 h-16 rounded-2xl text-3xl mb-4"
-          style={{ background: '#EBF6F0' }}
-        >
-          ✅
-        </div>
-        <h1
-          className="text-2xl font-extrabold tracking-tight mb-1"
-          style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          Audit Complete
-        </h1>
-        <p className="text-sm" style={{ color: '#5B7FA6' }}>
-          {area?.name ?? 'Area'} · {auditDate}
-        </p>
-      </div>
-
-      {/* Score card */}
+    <div
+      style={{
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'flex-start',
+        justifyContent: 'center',
+        padding: '40px 16px',
+        backgroundColor: '#f4f6f9',
+      }}
+    >
       <div
-        className="bg-white rounded-2xl border shadow-sm p-8 flex flex-col items-center gap-3 mb-4"
-        style={{ borderColor: scoreColor + '40' }}
+        style={{
+          width: '100%',
+          maxWidth: '480px',
+          backgroundColor: '#ffffff',
+          borderRadius: '20px',
+          boxShadow: '0 4px 24px rgba(45, 50, 114, 0.10)',
+          padding: '40px 32px 36px',
+        }}
       >
-        <div
-          className="text-6xl font-extrabold tabular-nums"
-          style={{ color: scoreColor, fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          {score.toFixed(1)}%
-        </div>
-        <span
-          className="text-sm font-bold px-3 py-1 rounded-full"
-          style={{
-            background: scoreColor + '20',
-            color: scoreColor,
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
-          }}
-        >
-          {scoreLabel}
-        </span>
-      </div>
-
-      {/* AI Summary */}
-      {audit.ai_summary ? (
-        <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 mb-4">
-          <p
-            className="text-xs font-bold uppercase tracking-wider mb-3"
-            style={{ color: '#5BB8D4', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        {/* Top icon + heading */}
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+          <div
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              backgroundColor: '#EBF6F0',
+              fontSize: '28px',
+              marginBottom: '16px',
+            }}
           >
-            AI Summary
-          </p>
-          <p className="text-sm leading-relaxed" style={{ color: '#252850' }}>
-            {audit.ai_summary}
-          </p>
+            ✓
+          </div>
+          <h1
+            style={{
+              fontSize: '1.5rem',
+              fontWeight: 800,
+              color: '#2D3272',
+              margin: '0 0 4px',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
+          >
+            Audit Complete
+          </h1>
         </div>
-      ) : null}
 
-      {/* Action items callout */}
-      {(actionCount ?? 0) > 0 && (
-        <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-5 mb-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <p
-                className="text-sm font-bold mb-0.5"
-                style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                {actionCount} action {actionCount === 1 ? 'item' : 'items'} created
-              </p>
-              <p className="text-sm" style={{ color: '#5B7FA6' }}>
-                AI-enhanced descriptions, due in 14 days.
-              </p>
-            </div>
-            <span
-              className="flex-shrink-0 text-xs font-bold px-2.5 py-1 rounded-full"
-              style={{ background: '#FDECEA', color: '#C62828', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              Open
-            </span>
+        {/* Score */}
+        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
+          <div
+            style={{
+              fontSize: '5rem',
+              fontWeight: 700,
+              color: scoreTextColor,
+              lineHeight: 1,
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              marginBottom: '10px',
+            }}
+          >
+            {score.toFixed(1)}%
+          </div>
+          <div
+            style={{
+              fontSize: '1rem',
+              fontWeight: 700,
+              color: scoreTextColor,
+              marginBottom: '8px',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
+          >
+            {scoreLabel}
+          </div>
+          <div style={{ fontSize: '0.85rem', color: '#5B7FA6' }}>
+            {area?.name ?? 'Area'} · {auditDate}
           </div>
         </div>
-      )}
 
-      {/* CTAs */}
-      <div className="flex flex-col gap-3 mt-4">
-        <Link
-          href="/actions"
-          className="w-full py-3.5 rounded-xl text-sm font-bold text-white text-center block"
-          style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        {/* AI Summary */}
+        {audit.ai_summary ? (
+          <div
+            style={{
+              backgroundColor: 'rgba(91, 184, 212, 0.12)',
+              borderRadius: '12px',
+              padding: '18px 20px',
+              marginBottom: '20px',
+            }}
+          >
+            <p
+              style={{
+                fontSize: '0.7rem',
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.08em',
+                color: '#2D8FBF',
+                margin: '0 0 10px',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              ✨ AI Summary
+            </p>
+            <p
+              style={{
+                fontSize: '0.9rem',
+                lineHeight: 1.6,
+                color: '#252850',
+                margin: 0,
+              }}
+            >
+              {audit.ai_summary}
+            </p>
+          </div>
+        ) : null}
+
+        {/* Action Items */}
+        <div
+          style={{
+            borderRadius: '12px',
+            border: '1px solid #e8edf2',
+            padding: '18px 20px',
+            marginBottom: '28px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '14px',
+          }}
         >
-          View Action Items
-        </Link>
-        <Link
-          href={`/audit/${areaId}`}
-          className="w-full py-3.5 rounded-xl text-sm font-semibold text-center block border border-[#d1dae6]"
-          style={{ color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          Start Another Audit
-        </Link>
-        <Link
-          href="/dashboard"
-          className="w-full py-3.5 rounded-xl text-sm font-semibold text-center block"
-          style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          Back to Dashboard
-        </Link>
+          <span
+            style={{
+              flexShrink: 0,
+              width: '28px',
+              height: '28px',
+              borderRadius: '50%',
+              backgroundColor: '#EBF6F0',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '14px',
+              color: '#2DA870',
+              fontWeight: 700,
+            }}
+          >
+            ✓
+          </span>
+          <div>
+            {actions > 0 ? (
+              <>
+                <p
+                  style={{
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    color: '#2D3272',
+                    margin: '0 0 4px',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  }}
+                >
+                  {actions} action {actions === 1 ? 'item' : 'items'} created
+                </p>
+                <p style={{ fontSize: '0.85rem', color: '#5B7FA6', margin: 0 }}>
+                  AI-enhanced descriptions ready to assign
+                </p>
+              </>
+            ) : (
+              <p
+                style={{
+                  fontSize: '0.95rem',
+                  fontWeight: 700,
+                  color: '#2D3272',
+                  margin: 0,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+              >
+                🎉 No findings — great audit!
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Buttons */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <Link
+            href="/actions"
+            style={{
+              display: 'block',
+              width: '100%',
+              minHeight: '52px',
+              backgroundColor: '#2D8FBF',
+              color: '#ffffff',
+              borderRadius: '12px',
+              textAlign: 'center',
+              fontWeight: 700,
+              fontSize: '0.95rem',
+              textDecoration: 'none',
+              lineHeight: '52px',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              boxSizing: 'border-box',
+            }}
+          >
+            View Action Items →
+          </Link>
+          <Link
+            href="/dashboard"
+            style={{
+              display: 'block',
+              width: '100%',
+              minHeight: '52px',
+              backgroundColor: '#ffffff',
+              color: '#2D8FBF',
+              border: '2px solid #2D8FBF',
+              borderRadius: '12px',
+              textAlign: 'center',
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              textDecoration: 'none',
+              lineHeight: '48px',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              boxSizing: 'border-box',
+            }}
+          >
+            Back to Dashboard
+          </Link>
+        </div>
       </div>
     </div>
   )
