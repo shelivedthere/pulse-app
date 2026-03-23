@@ -166,7 +166,16 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
           return (
             <div
               key={area.id}
-              className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 flex flex-col gap-3"
+              style={{
+                background: '#ffffff',
+                borderRadius: '14px',
+                border: '1px solid #e8edf2',
+                boxShadow: '0 2px 10px rgba(45, 50, 114, 0.08)',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+              }}
             >
               {/* Area name */}
               <h3
@@ -194,15 +203,27 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
               )}
 
               {/* Meta row */}
-              <div className="flex items-center gap-3 text-sm flex-wrap" style={{ color: '#5B7FA6' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', fontSize: '13px', color: '#5B7FA6' }}>
                 {area.lastAuditDate && (
                   <span>Last audit: {formatDate(area.lastAuditDate)}</span>
                 )}
                 {area.lastAuditDate && area.openItemCount > 0 && (
-                  <span className="text-[#d1dae6]">·</span>
+                  <span style={{ color: '#d1dae6' }}>·</span>
                 )}
                 {area.openItemCount > 0 && (
-                  <span>{area.openItemCount} open {area.openItemCount === 1 ? 'item' : 'items'}</span>
+                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px' }}>
+                    <span
+                      style={{
+                        width: '7px',
+                        height: '7px',
+                        borderRadius: '50%',
+                        background: '#ef4444',
+                        flexShrink: 0,
+                        display: 'inline-block',
+                      }}
+                    />
+                    {area.openItemCount} open {area.openItemCount === 1 ? 'item' : 'items'}
+                  </span>
                 )}
                 {!area.lastAuditDate && area.openItemCount === 0 && (
                   <span>—</span>
@@ -210,18 +231,34 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
               </div>
 
               {/* Action buttons */}
-              <div className="mt-auto pt-1 flex items-center gap-3">
+              <div style={{ marginTop: 'auto', paddingTop: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Link
                   href={`/audit/${area.id}`}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-                  style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    background: '#2D8FBF',
+                    color: '#ffffff',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    textDecoration: 'none',
+                  }}
                 >
                   Start Audit
                 </Link>
                 <Link
                   href={`/areas/${area.id}`}
-                  className="px-4 py-2 rounded-lg text-sm font-semibold border border-[#d1dae6]"
-                  style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '8px',
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    border: '1.5px solid #2D8FBF',
+                    color: '#2D8FBF',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    textDecoration: 'none',
+                  }}
                 >
                   View Area
                 </Link>
