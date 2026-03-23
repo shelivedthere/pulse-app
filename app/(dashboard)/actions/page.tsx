@@ -48,8 +48,8 @@ export default async function ActionsPage({ searchParams }: Props) {
     // Contributor with no areas gets an empty result
     if (allowedAreaIds.length === 0) {
       return (
-        <div className="max-w-[1120px] mx-auto py-10">
-          <PageHeader isAdmin={false} />
+        <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '40px 24px' }}>
+          <PageHeader isAdmin={false} totalCount={0} />
           <EmptyState message="You haven't been assigned to any areas yet. Contact your administrator to get access." />
         </div>
       )
@@ -69,8 +69,8 @@ export default async function ActionsPage({ searchParams }: Props) {
   }))
 
   return (
-    <div className="max-w-[1120px] mx-auto px-6 py-10">
-      <PageHeader isAdmin={isAdmin} />
+    <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '40px 24px' }}>
+      <PageHeader isAdmin={isAdmin} totalCount={items.length} />
       <ActionItemList
         initialItems={items}
         areas={areas ?? []}
@@ -81,19 +81,40 @@ export default async function ActionsPage({ searchParams }: Props) {
   )
 }
 
-function PageHeader({ isAdmin }: { isAdmin: boolean }) {
+function PageHeader({ isAdmin, totalCount }: { isAdmin: boolean; totalCount: number }) {
   return (
-    <div className="mb-8">
-      <h1
-        className="text-3xl font-extrabold tracking-tight"
-        style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-      >
-        Action Items
-      </h1>
-      <p className="text-sm mt-1" style={{ color: '#5B7FA6' }}>
+    <div style={{ marginBottom: '32px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '6px' }}>
+        <h1
+          style={{
+            color: '#2D3272',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontSize: '1.875rem',
+            fontWeight: 800,
+            letterSpacing: '-0.025em',
+            margin: 0,
+          }}
+        >
+          Action Items
+        </h1>
+        <span
+          style={{
+            backgroundColor: '#2D8FBF',
+            color: '#ffffff',
+            fontSize: '0.75rem',
+            fontWeight: 700,
+            padding: '3px 10px',
+            borderRadius: '999px',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}
+        >
+          {totalCount}
+        </span>
+      </div>
+      <p style={{ color: '#5B7FA6', fontSize: '0.875rem', margin: 0 }}>
         {isAdmin
-          ? 'All findings across your organization.'
-          : 'Findings from your areas.'}
+          ? 'All findings across your organization'
+          : 'Findings from your areas'}
       </p>
     </div>
   )
@@ -101,10 +122,24 @@ function PageHeader({ isAdmin }: { isAdmin: boolean }) {
 
 function EmptyState({ message }: { message: string }) {
   return (
-    <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-10 text-center">
+    <div
+      style={{
+        backgroundColor: '#ffffff',
+        borderRadius: '12px',
+        border: '1px solid #e8edf2',
+        boxShadow: '0 1px 4px rgba(45, 50, 114, 0.06)',
+        padding: '40px',
+        textAlign: 'center',
+      }}
+    >
       <p
-        className="text-sm font-semibold mb-1"
-        style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        style={{
+          fontSize: '0.875rem',
+          fontWeight: 600,
+          color: '#2D3272',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          margin: 0,
+        }}
       >
         {message}
       </p>
