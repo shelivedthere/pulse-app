@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
 interface Props {
@@ -10,10 +10,17 @@ interface Props {
   userEmail: string
 }
 
+function truncateEmail(email: string, max = 22): string {
+  return email.length > max ? email.slice(0, max - 1) + '…' : email
+}
+
 export default function NavClient({ isAdmin, userEmail }: Props) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const hamburgerRef = useRef<HTMLButtonElement>(null)
+  const mobileMenuRef = useRef<HTMLDivElement>(null)
 
   async function handleLogout() {
     const supabase = createClient()
@@ -30,19 +37,58 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
     ...(isAdmin ? [{ href: '/settings', label: 'Settings' }] : []),
   ]
 
+  // Track mobile breakpoint (< 768px) via resize listener
+  useEffect(() => {
+    function checkWidth() {
+      const mobile = window.innerWidth < 768
+      setIsMobile(mobile)
+      if (!mobile) setMobileOpen(false)
+    }
+    checkWidth()
+    window.addEventListener('resize', checkWidth)
+    return () => window.removeEventListener('resize', checkWidth)
+  }, [])
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    if (!mobileOpen) return
+    function handleClickOutside(e: MouseEvent) {
+      const target = e.target as Node
+      if (
+        mobileMenuRef.current?.contains(target) ||
+        hamburgerRef.current?.contains(target)
+      ) return
+      setMobileOpen(false)
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [mobileOpen])
+
   return (
     <>
-      {/* Desktop nav links + user info */}
-      <div className="hidden sm:flex items-stretch gap-8">
+      {/* Desktop nav — hidden on mobile */}
+      <div
+        style={{
+          display: isMobile ? 'none' : 'flex',
+          alignItems: 'stretch',
+          gap: '32px',
+        }}
+      >
+        {/* Nav links */}
         {navLinks.map(({ href, label }) => (
           <Link
             key={href}
             href={href}
-            className="flex items-center text-sm font-semibold border-b-2 transition-colors"
             style={{
-              color: isActive(href) ? '#2D8FBF' : '#252850',
-              borderColor: isActive(href) ? '#2D8FBF' : 'transparent',
+              display: 'flex',
+              alignItems: 'center',
+              fontSize: '14px',
+              fontWeight: 600,
               fontFamily: "'Plus Jakarta Sans', sans-serif",
+              color: isActive(href) ? '#2D8FBF' : '#252850',
+              borderBottom: isActive(href) ? '2px solid #2D8FBF' : '2px solid transparent',
+              textDecoration: 'none',
+              whiteSpace: 'nowrap',
             }}
           >
             {label}
@@ -50,27 +96,44 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
         ))}
 
         {/* Separator */}
-        <div className="flex items-center">
-          <span className="w-px h-4 bg-[#e8edf2]" />
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <span style={{ width: '1px', height: '16px', background: '#e5e7eb', display: 'block' }} />
         </div>
 
         {/* User email */}
-        <div className="flex items-center">
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <span
-            className="text-xs truncate max-w-[180px]"
-            style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
             title={userEmail}
+            style={{
+              fontSize: '12px',
+              color: '#5B7FA6',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              whiteSpace: 'nowrap',
+            }}
           >
-            {userEmail}
+            {truncateEmail(userEmail)}
           </span>
         </div>
 
+        {/* Separator before Sign out */}
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <span style={{ width: '1px', height: '16px', background: '#e5e7eb', display: 'block' }} />
+        </div>
+
         {/* Sign out */}
-        <div className="flex items-center">
+        <div style={{ display: 'flex', alignItems: 'center' }}>
           <button
             onClick={handleLogout}
-            className="text-sm font-medium transition"
-            style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 500,
+              color: '#5B7FA6',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              padding: 0,
+            }}
             onMouseEnter={e => (e.currentTarget.style.color = '#2D3272')}
             onMouseLeave={e => (e.currentTarget.style.color = '#5B7FA6')}
           >
@@ -79,12 +142,22 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
         </div>
       </div>
 
-      {/* Mobile hamburger */}
+      {/* Mobile hamburger button — only shown on mobile */}
       <button
-        className="sm:hidden flex items-center justify-center p-2 rounded-lg"
+        ref={hamburgerRef}
         onClick={() => setMobileOpen(o => !o)}
         aria-label="Toggle menu"
-        style={{ color: '#2D3272' }}
+        style={{
+          display: isMobile ? 'flex' : 'none',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '8px',
+          borderRadius: '8px',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: '#2D3272',
+        }}
       >
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
           {mobileOpen ? (
@@ -102,37 +175,80 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
         </svg>
       </button>
 
-      {/* Mobile dropdown menu */}
-      {mobileOpen && (
+      {/* Mobile dropdown menu — only rendered when mobile + open */}
+      {isMobile && mobileOpen && (
         <div
-          className="sm:hidden absolute top-full left-0 right-0 bg-white border-b border-[#e8edf2] shadow-md px-6 py-5 flex flex-col gap-4"
-          style={{ zIndex: 100 }}
+          ref={mobileMenuRef}
+          style={{
+            position: 'absolute',
+            top: '100%',
+            left: 0,
+            right: 0,
+            background: '#ffffff',
+            borderBottom: '1px solid #e5e7eb',
+            boxShadow: '0 8px 24px rgba(45, 50, 114, 0.10)',
+            zIndex: 100,
+            display: 'flex',
+            flexDirection: 'column',
+          }}
         >
           {navLinks.map(({ href, label }) => (
             <Link
               key={href}
               href={href}
               onClick={() => setMobileOpen(false)}
-              className="text-sm font-semibold"
               style={{
-                color: isActive(href) ? '#2D8FBF' : '#252850',
+                display: 'flex',
+                alignItems: 'center',
+                minHeight: '52px',
+                padding: '0 24px',
+                fontSize: '15px',
+                fontWeight: 600,
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
+                color: isActive(href) ? '#2D8FBF' : '#252850',
+                background: isActive(href) ? '#F0F7FF' : 'transparent',
+                textDecoration: 'none',
+                borderLeft: isActive(href) ? '3px solid #2D8FBF' : '3px solid transparent',
               }}
             >
               {label}
             </Link>
           ))}
-          <div className="border-t border-[#e8edf2] pt-4 flex flex-col gap-3">
+
+          {/* Email + sign out footer */}
+          <div
+            style={{
+              borderTop: '1px solid #e5e7eb',
+              padding: '16px 24px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px',
+            }}
+          >
             <span
-              className="text-xs truncate"
-              style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              title={userEmail}
+              style={{
+                fontSize: '12px',
+                color: '#5B7FA6',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
             >
               {userEmail}
             </span>
             <button
               onClick={handleLogout}
-              className="text-sm font-semibold text-left"
-              style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '14px',
+                fontWeight: 600,
+                color: '#5B7FA6',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                padding: 0,
+                textAlign: 'left',
+                minHeight: '44px',
+              }}
             >
               Sign out
             </button>
