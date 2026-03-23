@@ -73,45 +73,92 @@ export default async function AuditPage({ params }: Props) {
   )
 
   return (
-    <div className="max-w-2xl mx-auto py-8">
+    <div style={{ maxWidth: '672px', margin: '0 auto', padding: '32px 0' }}>
+      {/* Back link */}
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6"
-        style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontSize: '14px',
+          fontWeight: 600,
+          color: '#5B7FA6',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          textDecoration: 'none',
+          marginBottom: '20px',
+        }}
       >
-        ← Dashboard
+        ← Back to Dashboard
       </Link>
 
-      <div className="mb-6">
-        <p
-          className="text-xs font-bold uppercase tracking-wider mb-1"
-          style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          6S Audit
-        </p>
+      {/* Page title */}
+      <div style={{ marginBottom: '24px' }}>
         <h1
-          className="text-2xl font-extrabold tracking-tight"
-          style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{
+            margin: 0,
+            fontSize: '24px',
+            fontWeight: 800,
+            letterSpacing: '-0.02em',
+            color: '#2D3272',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}
         >
           {area.name}
         </h1>
+        <p
+          style={{
+            margin: '4px 0 0',
+            fontSize: '13px',
+            fontWeight: 600,
+            color: '#5B7FA6',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            textTransform: 'uppercase',
+            letterSpacing: '0.06em',
+          }}
+        >
+          6S Audit
+        </p>
       </div>
 
       {activeItems.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-8 text-center">
+        <div
+          style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e8edf2',
+            boxShadow: '0 1px 4px rgba(45,50,114,0.06)',
+            padding: '32px',
+            textAlign: 'center',
+          }}
+        >
           <p
-            className="text-sm font-semibold mb-1"
-            style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              fontSize: '14px',
+              fontWeight: 600,
+              color: '#2D3272',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              marginBottom: '6px',
+            }}
           >
             No active checklist items
           </p>
-          <p className="text-sm" style={{ color: '#5B7FA6' }}>
+          <p style={{ fontSize: '14px', color: '#5B7FA6', margin: '0 0 16px' }}>
             Enable items in the area checklist settings before running an audit.
           </p>
           <Link
             href={`/areas/${areaId}/settings`}
-            className="inline-block mt-4 px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              display: 'inline-block',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              fontWeight: 600,
+              background: '#2D8FBF',
+              color: '#ffffff',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              textDecoration: 'none',
+            }}
           >
             Customize Checklist
           </Link>
