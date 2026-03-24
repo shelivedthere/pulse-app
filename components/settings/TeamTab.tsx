@@ -34,14 +34,22 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
+function getInitials(name: string, email: string): string {
+  if (name) {
+    const parts = name.trim().split(' ').filter(Boolean)
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
+    return parts[0][0].toUpperCase()
+  }
+  return email[0].toUpperCase()
+}
+
 function RoleBadge({ role }: { role: 'admin' | 'contributor' }) {
   return (
     <span
-      className="inline-block text-xs font-semibold rounded-full px-2.5 py-0.5"
       style={
         role === 'admin'
-          ? { background: '#EBF0F8', color: '#2D3272', fontFamily: FONT }
-          : { background: '#EBF5FB', color: '#2D8FBF', fontFamily: FONT }
+          ? { display: 'inline-block', fontSize: '11px', fontWeight: 700, borderRadius: '999px', padding: '3px 10px', background: '#2D8FBF', color: '#ffffff', fontFamily: FONT }
+          : { display: 'inline-block', fontSize: '11px', fontWeight: 700, borderRadius: '999px', padding: '3px 10px', background: '#5B7FA6', color: '#ffffff', fontFamily: FONT }
       }
     >
       {role === 'admin' ? 'Admin' : 'Contributor'}
@@ -87,22 +95,40 @@ function MemberRow({
   }
 
   const displayName = member.full_name || member.email
+  const initials = getInitials(member.full_name, member.email)
 
   return (
-    <div className="px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+    <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+      {/* Avatar circle */}
+      <div
+        style={{
+          width: '40px',
+          height: '40px',
+          borderRadius: '50%',
+          background: '#2D8FBF',
+          color: '#ffffff',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '14px',
+          fontWeight: 700,
+          fontFamily: FONT,
+          flexShrink: 0,
+        }}
+      >
+        {initials}
+      </div>
+
       {/* Name / email + role badge */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p
-            className="text-sm font-semibold truncate"
-            style={{ color: '#252850', fontFamily: FONT }}
-          >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+          <p style={{ fontSize: '14px', fontWeight: 600, color: '#252850', fontFamily: FONT, margin: 0 }}>
             {displayName}
           </p>
           <RoleBadge role={member.role} />
         </div>
         {member.full_name && (
-          <p className="text-xs mt-0.5 truncate" style={{ color: '#5B7FA6' }}>
+          <p style={{ fontSize: '12px', color: '#5B7FA6', margin: '2px 0 0 0' }}>
             {member.email}
           </p>
         )}
@@ -110,28 +136,33 @@ function MemberRow({
 
       {/* Area dropdown — only for contributors */}
       {member.role === 'contributor' ? (
-        <div className="flex items-center gap-2 sm:flex-shrink-0">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
           <select
             value={areaId}
             onChange={e => handleAreaChange(e.target.value)}
             disabled={saving}
-            className="rounded-lg border border-[#d1dae6] px-3 py-2 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20 bg-white disabled:opacity-60"
-            style={{ color: '#252850', fontFamily: FONT, minWidth: '160px' }}
+            className="outline-none focus:ring-2 focus:ring-[#2D8FBF]/20 focus:border-[#2D8FBF] transition disabled:opacity-60"
+            style={{
+              borderRadius: '8px',
+              border: '1px solid #d1dae6',
+              padding: '8px 12px',
+              fontSize: '13px',
+              color: '#252850',
+              fontFamily: FONT,
+              minWidth: '160px',
+              background: '#ffffff',
+            }}
           >
             <option value="">No area assigned</option>
             {areas.map(a => (
               <option key={a.id} value={a.id}>{a.name}</option>
             ))}
           </select>
-          {saving && (
-            <span className="text-xs" style={{ color: '#5B7FA6' }}>Saving…</span>
-          )}
-          {saveError && (
-            <span className="text-xs text-red-500">{saveError}</span>
-          )}
+          {saving && <span style={{ fontSize: '12px', color: '#5B7FA6' }}>Saving…</span>}
+          {saveError && <span style={{ fontSize: '12px', color: '#ef4444' }}>{saveError}</span>}
         </div>
       ) : (
-        <span className="text-xs sm:flex-shrink-0" style={{ color: '#5B7FA6', fontFamily: FONT }}>
+        <span style={{ fontSize: '12px', color: '#5B7FA6', fontFamily: FONT, flexShrink: 0 }}>
           All areas
         </span>
       )}
@@ -208,26 +239,45 @@ export default function TeamTab({ orgId, areas, teamMembers, pendingInvitations 
     }
   }
 
-  const selectClass = "w-full rounded-lg border border-[#d1dae6] px-4 py-2.5 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20 bg-white"
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    borderRadius: '8px',
+    border: '1px solid #d1dae6',
+    padding: '10px 14px',
+    fontSize: '14px',
+    color: '#252850',
+    fontFamily: FONT,
+    background: '#ffffff',
+    boxSizing: 'border-box',
+  }
 
   return (
-    <div className="max-w-2xl">
+    <div style={{ maxWidth: '672px' }}>
 
       {/* ── Invite form ─────────────────────────────────────────── */}
-      <div className="mb-10">
-        <h2
-          className="text-lg font-extrabold mb-1"
-          style={{ color: '#2D3272', fontFamily: FONT }}
-        >
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ fontSize: '17px', fontWeight: 800, color: '#2D3272', fontFamily: FONT, margin: '0 0 4px 0' }}>
           Invite Team Member
         </h2>
-        <p className="text-sm mb-5" style={{ color: '#5B7FA6' }}>
+        <p style={{ fontSize: '14px', color: '#5B7FA6', margin: '0 0 20px 0' }}>
           Send an invitation to give someone access to a specific area.
         </p>
 
-        <form onSubmit={handleInvite} className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 flex flex-col gap-4">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="invite-email" className="text-sm font-semibold" style={{ color: '#2D3272', fontFamily: FONT }}>
+        <form
+          onSubmit={handleInvite}
+          style={{
+            background: '#ffffff',
+            borderRadius: '12px',
+            border: '1px solid #e8edf2',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+            padding: '24px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <label htmlFor="invite-email" style={{ fontSize: '13px', fontWeight: 600, color: '#2D3272', fontFamily: FONT }}>
               Email address
             </label>
             <input
@@ -236,18 +286,18 @@ export default function TeamTab({ orgId, areas, teamMembers, pendingInvitations 
               value={email}
               onChange={e => { setEmail(e.target.value); setInviteError(null); setInviteSuccess(null) }}
               placeholder="owner@company.com"
-              className="w-full rounded-lg border border-[#d1dae6] px-4 py-2.5 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
-              style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
+              className="outline-none focus:ring-2 focus:ring-[#2D8FBF]/20 focus:border-[#2D8FBF] transition"
+              style={inputStyle}
             />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="invite-area" className="text-sm font-semibold" style={{ color: '#2D3272', fontFamily: FONT }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="grid-cols-1 sm:grid-cols-2">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label htmlFor="invite-area" style={{ fontSize: '13px', fontWeight: 600, color: '#2D3272', fontFamily: FONT }}>
                 Area
               </label>
               {areas.length === 0 ? (
-                <p className="text-sm" style={{ color: '#5B7FA6' }}>
+                <p style={{ fontSize: '13px', color: '#5B7FA6', margin: 0 }}>
                   Add areas on the dashboard first.
                 </p>
               ) : (
@@ -255,8 +305,8 @@ export default function TeamTab({ orgId, areas, teamMembers, pendingInvitations 
                   id="invite-area"
                   value={areaId}
                   onChange={e => { setAreaId(e.target.value); setInviteError(null) }}
-                  className={selectClass}
-                  style={{ color: areaId ? '#252850' : '#9aabb8', fontFamily: "'Inter', sans-serif" }}
+                  className="outline-none focus:ring-2 focus:ring-[#2D8FBF]/20 focus:border-[#2D8FBF] transition"
+                  style={{ ...inputStyle, color: areaId ? '#252850' : '#9aabb8' }}
                 >
                   <option value="" disabled>Select an area…</option>
                   {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
@@ -264,16 +314,16 @@ export default function TeamTab({ orgId, areas, teamMembers, pendingInvitations 
               )}
             </div>
 
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="invite-role" className="text-sm font-semibold" style={{ color: '#2D3272', fontFamily: FONT }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label htmlFor="invite-role" style={{ fontSize: '13px', fontWeight: 600, color: '#2D3272', fontFamily: FONT }}>
                 Role
               </label>
               <select
                 id="invite-role"
                 value={inviteRole}
                 onChange={e => setInviteRole(e.target.value as 'contributor' | 'admin')}
-                className={selectClass}
-                style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
+                className="outline-none focus:ring-2 focus:ring-[#2D8FBF]/20 focus:border-[#2D8FBF] transition"
+                style={inputStyle}
               >
                 <option value="contributor">Contributor</option>
                 <option value="admin">Admin</option>
@@ -282,49 +332,60 @@ export default function TeamTab({ orgId, areas, teamMembers, pendingInvitations 
           </div>
 
           {inviteError && (
-            <p className="text-sm rounded-lg bg-red-50 border border-red-200 text-red-600 px-4 py-3">
+            <p style={{ fontSize: '13px', borderRadius: '8px', background: '#fef2f2', border: '1px solid #fca5a5', color: '#dc2626', padding: '12px 16px', margin: 0 }}>
               {inviteError}
             </p>
           )}
           {inviteSuccess && (
-            <p className="text-sm rounded-lg px-4 py-3 font-semibold" style={{ background: '#E8F8F1', border: '1px solid #2DA870', color: '#1a7a50' }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, borderRadius: '8px', background: '#E8F8F1', border: '1px solid #2DA870', color: '#1a7a50', padding: '12px 16px', margin: 0 }}>
               {inviteSuccess}
             </p>
           )}
 
-          <button
-            type="submit"
-            disabled={inviteLoading || areas.length === 0}
-            className="self-start px-5 py-2.5 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
-            style={{ background: '#2D8FBF', fontFamily: FONT }}
-          >
-            {inviteLoading ? 'Sending…' : 'Send Invitation'}
-          </button>
+          <div>
+            <button
+              type="submit"
+              disabled={inviteLoading || areas.length === 0}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '10px',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#ffffff',
+                background: '#2D8FBF',
+                border: 'none',
+                cursor: 'pointer',
+                fontFamily: FONT,
+                opacity: (inviteLoading || areas.length === 0) ? 0.6 : 1,
+              }}
+            >
+              {inviteLoading ? 'Sending…' : 'Send Invitation'}
+            </button>
+          </div>
         </form>
       </div>
 
       {/* ── Team members list ────────────────────────────────────── */}
-      <div className="mb-10">
-        <h2
-          className="text-base font-bold mb-4"
-          style={{ color: '#2D3272', fontFamily: FONT }}
-        >
+      <div style={{ marginBottom: '40px' }}>
+        <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#2D3272', fontFamily: FONT, margin: '0 0 16px 0' }}>
           Team Members
         </h2>
 
         {teamMembers.length === 0 ? (
-          <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-8 text-center">
-            <p className="text-sm font-semibold mb-1" style={{ color: '#2D3272', fontFamily: FONT }}>
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '32px', textAlign: 'center' }}>
+            <p style={{ fontSize: '14px', fontWeight: 600, color: '#2D3272', fontFamily: FONT, marginBottom: '4px' }}>
               No team members yet
             </p>
-            <p className="text-sm" style={{ color: '#5B7FA6' }}>
+            <p style={{ fontSize: '13px', color: '#5B7FA6', margin: 0 }}>
               Use the invite form above to give area owners access.
             </p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm divide-y divide-[#f0f2f5]">
-            {teamMembers.map(member => (
-              <MemberRow key={member.id} member={member} areas={areas} orgId={orgId} />
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+            {teamMembers.map((member, idx) => (
+              <div key={member.id} style={idx > 0 ? { borderTop: '1px solid #f0f2f5' } : {}}>
+                <MemberRow member={member} areas={areas} orgId={orgId} />
+              </div>
             ))}
           </div>
         )}
@@ -333,35 +394,59 @@ export default function TeamTab({ orgId, areas, teamMembers, pendingInvitations 
       {/* ── Pending invitations ──────────────────────────────────── */}
       {pending.length > 0 && (
         <div>
-          <h2
-            className="text-base font-bold mb-4"
-            style={{ color: '#2D3272', fontFamily: FONT }}
-          >
+          <h2 style={{ fontSize: '15px', fontWeight: 700, color: '#2D3272', fontFamily: FONT, margin: '0 0 16px 0' }}>
             Pending Invitations
           </h2>
-          <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm divide-y divide-[#f0f2f5]">
-            {pending.map(inv => (
-              <div key={inv.id} className="px-5 py-4 flex items-center justify-between gap-4">
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold truncate" style={{ color: '#252850', fontFamily: FONT }}>
+          <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
+            {pending.map((inv, idx) => (
+              <div
+                key={inv.id}
+                style={{
+                  padding: '16px 20px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '16px',
+                  borderTop: idx > 0 ? '1px solid #f0f2f5' : 'none',
+                }}
+              >
+                <div style={{ minWidth: 0 }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: '#252850', fontFamily: FONT, margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {inv.email}
                   </p>
-                  <p className="text-xs mt-0.5" style={{ color: '#5B7FA6' }}>
+                  <p style={{ fontSize: '12px', color: '#5B7FA6', margin: '3px 0 0 0' }}>
                     Invited {formatDate(inv.created_at)} · {inv.area_name}
                   </p>
                 </div>
-                <div className="flex items-center gap-3 flex-shrink-0">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
                   <span
-                    className="text-xs font-semibold rounded-full px-2.5 py-1"
-                    style={{ background: '#FFF8E6', color: '#B8860B', fontFamily: FONT }}
+                    style={{
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      borderRadius: '999px',
+                      padding: '3px 10px',
+                      background: '#F5D800',
+                      color: '#252850',
+                      fontFamily: FONT,
+                    }}
                   >
                     Pending
                   </span>
                   <button
                     onClick={() => handleCancelInvite(inv.id)}
                     disabled={cancellingId === inv.id}
-                    className="text-xs font-semibold transition disabled:opacity-40"
-                    style={{ color: '#E53935', fontFamily: FONT }}
+                    style={{
+                      fontSize: '12px',
+                      fontWeight: 600,
+                      color: '#5B7FA6',
+                      background: 'none',
+                      border: '1px solid #d1dae6',
+                      borderRadius: '6px',
+                      padding: '4px 10px',
+                      cursor: 'pointer',
+                      fontFamily: FONT,
+                      opacity: cancellingId === inv.id ? 0.4 : 1,
+                    }}
                   >
                     {cancellingId === inv.id ? 'Cancelling…' : 'Cancel'}
                   </button>

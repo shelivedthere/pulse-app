@@ -98,43 +98,83 @@ export default function TemplateBuilder({ initialItems, templateId, orgId }: Pro
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
       {CATEGORIES.map(category => {
         const catItems = groupedItems[category] ?? []
         const isFormOpen = activeCategory === category
 
         return (
-          <div key={category} className="bg-white rounded-xl border border-[#e8edf2] shadow-sm overflow-hidden">
+          <div key={category} style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' }}>
             {/* Category header */}
             <div
-              className="flex items-center justify-between px-5 py-4 border-b border-[#f0f2f5]"
-              style={{ background: '#F5F7FA' }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '14px 20px',
+                background: '#F5F7FA',
+                borderBottom: '1px solid #f0f2f5',
+              }}
             >
               <h3
-                className="text-sm font-bold"
-                style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: '#2D3272',
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  margin: 0,
+                }}
               >
                 {category}
               </h3>
               <span
-                className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                style={{ background: '#EBF6FA', color: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                style={{
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  padding: '2px 10px',
+                  borderRadius: '999px',
+                  background: '#f3f4f6',
+                  color: '#5B7FA6',
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
               >
                 {catItems.length} {catItems.length === 1 ? 'item' : 'items'}
               </span>
             </div>
 
             {/* Items */}
-            <div className="divide-y divide-[#f0f2f5]">
+            <div style={{ borderTop: 'none' }}>
               {catItems.map(item => (
-                <div key={item.id} className="flex items-center justify-between px-5 py-3 gap-4">
-                  <span className="text-sm flex-1" style={{ color: '#252850' }}>
+                <div
+                  key={item.id}
+                  className="hover:bg-[#fafbfc] transition-colors"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '12px 20px',
+                    gap: '16px',
+                    borderBottom: '1px solid #f0f2f5',
+                  }}
+                >
+                  <span style={{ fontSize: '13px', color: '#252850', flex: 1, fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                     {item.description}
                   </span>
                   {item.is_default ? (
                     <span
-                      className="text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 flex items-center gap-1"
-                      style={{ background: '#f0f2f5', color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      style={{
+                        fontSize: '11px',
+                        fontWeight: 600,
+                        padding: '3px 10px',
+                        borderRadius: '999px',
+                        background: '#f3f4f6',
+                        color: '#5B7FA6',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        flexShrink: 0,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                      }}
                     >
                       🔒 Default
                     </span>
@@ -142,8 +182,21 @@ export default function TemplateBuilder({ initialItems, templateId, orgId }: Pro
                     <button
                       onClick={() => handleDelete(item.id)}
                       disabled={deletingId === item.id}
-                      className="text-sm flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-lg transition hover:bg-red-50 disabled:opacity-40"
-                      style={{ color: '#B0B8C9' }}
+                      className="hover:bg-red-50 transition-colors disabled:opacity-40"
+                      style={{
+                        flexShrink: 0,
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '8px',
+                        border: 'none',
+                        background: 'transparent',
+                        cursor: 'pointer',
+                        fontSize: '13px',
+                        color: '#ef4444',
+                      }}
                       aria-label={`Remove "${item.description}"`}
                     >
                       ✕
@@ -153,18 +206,18 @@ export default function TemplateBuilder({ initialItems, templateId, orgId }: Pro
               ))}
 
               {catItems.length === 0 && !isFormOpen && (
-                <div className="px-5 py-4 text-sm" style={{ color: '#5B7FA6' }}>
+                <div style={{ padding: '14px 20px', fontSize: '13px', color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   No items yet — add one below.
                 </div>
               )}
             </div>
 
             {/* Add item form or button */}
-            <div className="px-5 py-3 border-t border-[#f0f2f5]">
+            <div style={{ padding: '12px 20px', borderTop: '1px solid #f0f2f5' }}>
               {isFormOpen ? (
                 <form
                   onSubmit={e => { e.preventDefault(); handleAddItem(category) }}
-                  className="flex flex-col gap-2"
+                  style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}
                 >
                   <input
                     type="text"
@@ -172,24 +225,52 @@ export default function TemplateBuilder({ initialItems, templateId, orgId }: Pro
                     value={newItemText}
                     onChange={e => { setNewItemText(e.target.value); setFormError(null) }}
                     placeholder="Describe the checklist item…"
-                    className="w-full rounded-lg border border-[#d1dae6] px-3 py-2 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
-                    style={{ color: '#252850' }}
+                    className="outline-none focus:ring-2 focus:ring-[#2D8FBF]/20 focus:border-[#2D8FBF] transition"
+                    style={{
+                      width: '100%',
+                      borderRadius: '8px',
+                      border: '1px solid #d1dae6',
+                      padding: '8px 12px',
+                      fontSize: '13px',
+                      color: '#252850',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      boxSizing: 'border-box',
+                    }}
                   />
-                  {formError && <p className="text-xs text-red-600">{formError}</p>}
-                  <div className="flex gap-2">
+                  {formError && <p style={{ fontSize: '12px', color: '#ef4444', margin: 0 }}>{formError}</p>}
+                  <div style={{ display: 'flex', gap: '8px' }}>
                     <button
                       type="submit"
                       disabled={saving}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold text-white disabled:opacity-60"
-                      style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#ffffff',
+                        background: '#2D8FBF',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        opacity: saving ? 0.6 : 1,
+                      }}
                     >
                       {saving ? 'Adding…' : 'Add item'}
                     </button>
                     <button
                       type="button"
                       onClick={() => setActiveCategory(null)}
-                      className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-[#d1dae6]"
-                      style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                      style={{
+                        padding: '6px 14px',
+                        borderRadius: '8px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        color: '#5B7FA6',
+                        background: 'transparent',
+                        border: '1px solid #d1dae6',
+                        cursor: 'pointer',
+                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      }}
                     >
                       Cancel
                     </button>
@@ -198,8 +279,16 @@ export default function TemplateBuilder({ initialItems, templateId, orgId }: Pro
               ) : (
                 <button
                   onClick={() => openForm(category)}
-                  className="text-xs font-semibold transition"
-                  style={{ color: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#2D8FBF',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  }}
                 >
                   + Add item
                 </button>

@@ -85,38 +85,60 @@ export default async function SettingsPage({ searchParams }: Props) {
 
   const activeTab = tab === 'team' ? 'team' : 'template'
 
+  const FONT = "'Plus Jakarta Sans', sans-serif"
+
   return (
-    <div className="max-w-[1120px] mx-auto py-10">
+    <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '40px 16px' }}>
       {/* Page header */}
-      <div className="mb-8">
+      <div style={{ marginBottom: '32px' }}>
         <h1
-          className="text-3xl font-extrabold tracking-tight mb-6"
-          style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{
+            fontSize: '30px',
+            fontWeight: 800,
+            letterSpacing: '-0.5px',
+            color: '#2D3272',
+            fontFamily: FONT,
+            margin: '0 0 24px 0',
+          }}
         >
           Settings
         </h1>
 
-        {/* Sub-navigation */}
-        <div className="flex gap-0 border-b border-[#e8edf2]">
+        {/* Tab navigation */}
+        <div style={{ display: 'flex', borderBottom: '2px solid #e8edf2' }}>
           <Link
             href="/settings?tab=template"
-            className="px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors"
-            style={
-              activeTab === 'template'
-                ? { color: '#2D3272', borderColor: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }
-                : { color: '#5B7FA6', borderColor: 'transparent', fontFamily: "'Plus Jakarta Sans', sans-serif" }
-            }
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              minHeight: '44px',
+              padding: '0 16px',
+              fontSize: '14px',
+              fontWeight: 700,
+              fontFamily: FONT,
+              textDecoration: 'none',
+              marginBottom: '-2px',
+              borderBottom: activeTab === 'template' ? '2px solid #2D8FBF' : '2px solid transparent',
+              color: activeTab === 'template' ? '#2D8FBF' : '#5B7FA6',
+            }}
           >
             Template
           </Link>
           <Link
             href="/settings?tab=team"
-            className="px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors"
-            style={
-              activeTab === 'team'
-                ? { color: '#2D3272', borderColor: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }
-                : { color: '#5B7FA6', borderColor: 'transparent', fontFamily: "'Plus Jakarta Sans', sans-serif" }
-            }
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              minHeight: '44px',
+              padding: '0 16px',
+              fontSize: '14px',
+              fontWeight: 700,
+              fontFamily: FONT,
+              textDecoration: 'none',
+              marginBottom: '-2px',
+              borderBottom: activeTab === 'team' ? '2px solid #2D8FBF' : '2px solid transparent',
+              color: activeTab === 'team' ? '#2D8FBF' : '#5B7FA6',
+            }}
           >
             Team
           </Link>
@@ -125,15 +147,20 @@ export default async function SettingsPage({ searchParams }: Props) {
 
       {/* Template tab */}
       {activeTab === 'template' && (
-        <div className="max-w-2xl">
-          <div className="mb-6">
+        <div style={{ maxWidth: '672px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <h2
-              className="text-lg font-extrabold mb-1"
-              style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{
+                fontSize: '17px',
+                fontWeight: 800,
+                color: '#2D3272',
+                fontFamily: FONT,
+                margin: '0 0 4px 0',
+              }}
             >
               Audit Template
             </h2>
-            <p className="text-sm" style={{ color: '#5B7FA6' }}>
+            <p style={{ fontSize: '14px', color: '#5B7FA6', margin: 0 }}>
               These items appear on every audit by default. Use area settings to toggle items on or off for individual areas.
             </p>
           </div>
@@ -145,14 +172,11 @@ export default async function SettingsPage({ searchParams }: Props) {
               orgId={orgId}
             />
           ) : (
-            <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-8 text-center">
-              <p
-                className="text-sm font-semibold mb-1"
-                style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
+            <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '32px', textAlign: 'center' }}>
+              <p style={{ fontSize: '14px', fontWeight: 600, color: '#2D3272', fontFamily: FONT, marginBottom: '4px' }}>
                 No template found
               </p>
-              <p className="text-sm" style={{ color: '#5B7FA6' }}>
+              <p style={{ fontSize: '13px', color: '#5B7FA6', margin: 0 }}>
                 Run the template migration SQL in your Supabase SQL Editor, then create a new organization to auto-seed the default template.
               </p>
             </div>
