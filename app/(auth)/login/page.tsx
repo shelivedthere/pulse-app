@@ -119,8 +119,17 @@ function LoginForm() {
 
         {notice === 'expired' && (
           <div
-            className="mb-6 rounded-lg border px-4 py-3 text-sm"
-            style={{ background: '#FFF8E6', borderColor: '#F5D800', color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              marginBottom: '24px',
+              borderRadius: '8px',
+              border: '1px solid #d4b800',
+              padding: '12px 16px',
+              fontSize: '14px',
+              fontWeight: 600,
+              background: '#F5D800',
+              color: '#1a1a1a',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
           >
             Your session expired — please sign in again.
           </div>

@@ -187,21 +187,38 @@ export default async function AreaDetailPage({ params }: Props) {
 
         {chartData.length < 2 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 16px', textAlign: 'center' }}>
+            {chartData.length === 0 && (
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '14px',
+                  background: '#EBF0F8',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '24px',
+                  marginBottom: '16px',
+                }}
+              >
+                📋
+              </div>
+            )}
             <p
               style={{
-                fontSize: '14px',
-                fontWeight: 600,
+                fontSize: '15px',
+                fontWeight: 700,
                 color: '#2D3272',
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
-                marginBottom: '4px',
+                marginBottom: '6px',
               }}
             >
-              Complete at least 2 audits to see your score trend
+              {chartData.length === 0 ? 'No audits yet' : 'Complete at least 2 audits to see your score trend'}
             </p>
             <p style={{ fontSize: '13px', color: '#5B7FA6', marginBottom: '20px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              {chartData.length === 1
-                ? 'You have 1 audit — one more to go.'
-                : 'Scores will appear here after each completed audit.'}
+              {chartData.length === 0
+                ? 'Start your first audit to begin tracking this area'
+                : 'You have 1 audit — one more to go.'}
             </p>
             <Link
               href={`/audit/${areaId}`}

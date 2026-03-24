@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import Link from 'next/link'
+
+const FONT = "'Plus Jakarta Sans', sans-serif"
 
 export default function Error({
   error,
@@ -15,37 +16,82 @@ export default function Error({
   }, [error])
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[60vh] px-6 text-center">
+    <div
+      style={{
+        maxWidth: '1120px',
+        margin: '0 auto',
+        padding: '40px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '60vh',
+      }}
+    >
       <div
-        className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-5"
-        style={{ background: '#FDECEA' }}
+        style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          border: '1px solid #e8edf2',
+          boxShadow: '0 2px 12px rgba(45,50,114,0.08)',
+          padding: '40px 32px',
+          textAlign: 'center',
+          maxWidth: '400px',
+          width: '100%',
+        }}
       >
-        ⚠️
-      </div>
-      <h2
-        className="text-xl font-extrabold mb-2"
-        style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-      >
-        Something went wrong
-      </h2>
-      <p className="text-sm mb-6 max-w-xs" style={{ color: '#5B7FA6' }}>
-        We couldn&apos;t load this page. This is usually a temporary issue.
-      </p>
-      <div className="flex gap-3">
+        <div
+          style={{
+            width: '56px',
+            height: '56px',
+            borderRadius: '14px',
+            background: '#FDECEA',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '24px',
+            margin: '0 auto 20px',
+          }}
+        >
+          ⚠️
+        </div>
+        <h2
+          style={{
+            fontSize: '20px',
+            fontWeight: 800,
+            color: '#2D3272',
+            fontFamily: FONT,
+            margin: '0 0 8px 0',
+          }}
+        >
+          Something went wrong
+        </h2>
+        <p
+          style={{
+            fontSize: '14px',
+            color: '#5B7FA6',
+            fontFamily: FONT,
+            margin: '0 0 24px 0',
+            lineHeight: '1.6',
+          }}
+        >
+          We couldn&apos;t load your data. Please try refreshing the page.
+        </p>
         <button
           onClick={reset}
-          className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-          style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{
+            padding: '10px 24px',
+            borderRadius: '10px',
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#ffffff',
+            background: '#2D8FBF',
+            border: 'none',
+            cursor: 'pointer',
+            fontFamily: FONT,
+          }}
         >
-          Try again
+          Refresh
         </button>
-        <Link
-          href="/dashboard"
-          className="px-4 py-2 rounded-lg text-sm font-semibold border border-[#d1dae6]"
-          style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-        >
-          Back to Dashboard
-        </Link>
       </div>
     </div>
   )

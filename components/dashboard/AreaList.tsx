@@ -104,14 +104,22 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
     <div>
       {/* Add area form — admin only */}
       {isAdmin && showForm && (
-        <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 mb-6">
+        <div
+          style={{
+            padding: '1rem',
+            marginBottom: '24px',
+            border: '1px solid #e5e7eb',
+            borderRadius: '0.75rem',
+            backgroundColor: '#ffffff',
+          }}
+        >
           <h3
-            className="text-base font-bold mb-4"
-            style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            className="text-base font-bold"
+            style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif", marginBottom: '0.5rem' }}
           >
             Add area
           </h3>
-          <form onSubmit={handleAddArea} className="flex flex-col gap-3">
+          <form onSubmit={handleAddArea} className="flex flex-col">
             <input
               type="text"
               autoFocus
@@ -119,23 +127,23 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
               onChange={e => { setAreaName(e.target.value); if (formError) setFormError(null) }}
               placeholder="e.g. Warehouse, Lab A, Production Floor 2"
               className="w-full rounded-lg border border-[#d1dae6] px-4 py-2.5 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
-              style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
+              style={{ color: '#252850', fontFamily: "'Inter', sans-serif", marginBottom: '0.75rem' }}
             />
-            {formError && <p className="text-sm text-red-600">{formError}</p>}
-            <div className="flex gap-2 mt-1">
+            {formError && <p className="text-sm text-red-600" style={{ marginBottom: '0.5rem' }}>{formError}</p>}
+            <div className="flex gap-2">
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 rounded-lg text-sm font-semibold text-white disabled:opacity-60"
-                style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                className="rounded-lg text-sm font-semibold text-white disabled:opacity-60"
+                style={{ padding: '0.5rem 1rem', background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 {loading ? 'Adding…' : 'Add area'}
               </button>
               <button
                 type="button"
                 onClick={() => { setShowForm(false); setAreaName(''); setFormError(null) }}
-                className="px-4 py-2 rounded-lg text-sm font-semibold border border-[#d1dae6]"
-                style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                className="rounded-lg text-sm font-semibold border border-[#d1dae6]"
+                style={{ padding: '0.5rem 1rem', color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
               >
                 Cancel
               </button>
