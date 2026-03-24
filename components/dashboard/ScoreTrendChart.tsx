@@ -22,9 +22,9 @@ interface Props {
 
 export default function ScoreTrendChart({ data }: Props) {
   return (
-    <ResponsiveContainer width="100%" height={240}>
-      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: -10 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" vertical={false} />
+    <ResponsiveContainer width="100%" height={250}>
+      <LineChart data={data} margin={{ top: 8, right: 16, bottom: 4, left: 0 }}>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" vertical={false} />
         <XAxis
           dataKey="label"
           tick={{ fontSize: 11, fill: '#5B7FA6' }}
@@ -33,6 +33,7 @@ export default function ScoreTrendChart({ data }: Props) {
         />
         <YAxis
           domain={[0, 100]}
+          ticks={[0, 20, 40, 60, 80, 100]}
           tick={{ fontSize: 11, fill: '#5B7FA6' }}
           tickLine={false}
           axisLine={false}
@@ -41,6 +42,7 @@ export default function ScoreTrendChart({ data }: Props) {
         <Tooltip
           formatter={(value) => [`${Number(value).toFixed(1)}%`, 'Score']}
           contentStyle={{
+            background: '#ffffff',
             borderRadius: '10px',
             border: '1px solid #e8edf2',
             boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
@@ -55,7 +57,7 @@ export default function ScoreTrendChart({ data }: Props) {
           stroke="#2DA870"
           strokeDasharray="5 4"
           label={{
-            value: 'Target',
+            value: 'Target (80%)',
             position: 'insideTopRight',
             fontSize: 11,
             fill: '#2DA870',

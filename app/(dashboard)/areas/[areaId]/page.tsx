@@ -25,7 +25,7 @@ function formatChartLabel(dateStr: string) {
 function scoreColor(score: number) {
   if (score >= 80) return '#2DA870'
   if (score >= 60) return '#F5D800'
-  return '#E53935'
+  return '#ef4444'
 }
 
 export default async function AreaDetailPage({ params }: Props) {
@@ -66,13 +66,15 @@ export default async function AreaDetailPage({ params }: Props) {
 
   const audits = (rawAudits ?? []).reverse()
 
-  // Open action item count for this area
-  const { count: openItemCount } = await supabase
+  // Open action items for this area (up to 3 for display)
+  const { data: openItems, count: openItemCount } = await supabase
     .from('action_items')
-    .select('id', { count: 'exact', head: true })
+    .select('id, description, status', { count: 'exact' })
     .eq('area_id', areaId)
     .eq('org_id', orgId)
     .eq('status', 'open')
+    .order('created_at', { ascending: false })
+    .limit(3)
 
   const chartData = audits
     .filter(a => a.score != null)
@@ -84,95 +86,137 @@ export default async function AreaDetailPage({ params }: Props) {
   const latestAudit = rawAudits?.[0] ?? null
   const latestScore = latestAudit?.score != null ? Number(latestAudit.score) : null
   const latestDate = latestAudit ? formatDate(latestAudit.submitted_at) : null
+  const openCount = openItemCount ?? 0
 
   return (
-    <div className="max-w-[1120px] mx-auto py-10">
+    <div style={{ maxWidth: '1120px', margin: '0 auto', padding: '40px 16px' }}>
+
       {/* Back link */}
       <Link
         href="/dashboard"
-        className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6"
-        style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '4px',
+          color: '#2D8FBF',
+          fontSize: '14px',
+          fontWeight: 600,
+          textDecoration: 'none',
+          marginBottom: '24px',
+          fontFamily: "'Plus Jakarta Sans', sans-serif",
+        }}
       >
-        ← Dashboard
+        ← Back to Dashboard
       </Link>
 
       {/* Page header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '32px' }}>
         <div>
-          <p
-            className="text-xs font-bold uppercase tracking-wider mb-1"
-            style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            Area
-          </p>
-          <h1
-            className="text-3xl font-extrabold tracking-tight"
-            style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-          >
-            {area.name}
-          </h1>
+          {/* Area name + score badge row */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
+            <h1
+              style={{
+                fontSize: '30px',
+                fontWeight: 800,
+                letterSpacing: '-0.5px',
+                color: '#2D3272',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                margin: 0,
+              }}
+            >
+              {area.name}
+            </h1>
+            {latestScore !== null && (
+              <span
+                style={{
+                  fontSize: '22px',
+                  fontWeight: 800,
+                  color: scoreColor(latestScore),
+                  background: `${scoreColor(latestScore)}18`,
+                  borderRadius: '10px',
+                  padding: '4px 14px',
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  letterSpacing: '-0.3px',
+                }}
+              >
+                {latestScore.toFixed(1)}%
+              </span>
+            )}
+          </div>
+          {/* Last audited date */}
+          {latestDate && (
+            <p style={{ color: '#5B7FA6', fontSize: '13px', marginTop: '6px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+              Last audited: {latestDate}
+            </p>
+          )}
         </div>
         <Link
           href={`/audit/${areaId}`}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold text-white self-start sm:self-auto"
-          style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '10px 20px',
+            borderRadius: '12px',
+            fontSize: '14px',
+            fontWeight: 700,
+            color: '#ffffff',
+            background: '#2D8FBF',
+            textDecoration: 'none',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            flexShrink: 0,
+          }}
         >
           Start New Audit →
         </Link>
       </div>
 
-      {/* Latest score badge */}
-      {latestScore !== null && (
-        <div className="flex items-center gap-4 mb-8">
-          <div>
-            <p className="text-xs font-bold uppercase tracking-wider mb-0.5" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              Latest Score
-            </p>
-            <span
-              className="text-4xl font-extrabold tabular-nums"
-              style={{ color: scoreColor(latestScore), fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              {latestScore.toFixed(1)}%
-            </span>
-          </div>
-          {latestDate && (
-            <p className="text-sm self-end pb-1" style={{ color: '#5B7FA6' }}>
-              {latestDate}
-            </p>
-          )}
-        </div>
-      )}
-
       {/* Score trend chart */}
-      <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 mb-5">
+      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '24px', marginBottom: '20px' }}>
         <h2
-          className="text-base font-bold mb-5"
-          style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{
+            fontSize: '15px',
+            fontWeight: 700,
+            color: '#2D3272',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            margin: '0 0 20px 0',
+          }}
         >
           Score Trend
         </h2>
 
         {chartData.length < 2 ? (
-          <div className="flex flex-col items-center justify-center py-12 text-center">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '48px 16px', textAlign: 'center' }}>
             <p
-              className="text-sm font-semibold mb-1"
-              style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: '#2D3272',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                marginBottom: '4px',
+              }}
             >
-              {chartData.length === 0
-                ? 'No audits yet — start your first audit to begin tracking this area'
-                : 'Complete at least 2 audits to see your trend'}
+              Complete at least 2 audits to see your score trend
             </p>
-            <p className="text-sm mb-5" style={{ color: '#5B7FA6' }}>
+            <p style={{ fontSize: '13px', color: '#5B7FA6', marginBottom: '20px', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
               {chartData.length === 1
                 ? 'You have 1 audit — one more to go.'
                 : 'Scores will appear here after each completed audit.'}
             </p>
             <Link
               href={`/audit/${areaId}`}
-              className="px-5 py-2.5 rounded-xl text-sm font-bold text-white"
-              style={{ background: '#2D8FBF', color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+              style={{
+                padding: '10px 20px',
+                borderRadius: '12px',
+                fontSize: '14px',
+                fontWeight: 700,
+                color: '#ffffff',
+                background: '#2D8FBF',
+                textDecoration: 'none',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
             >
-              Start Audit
+              Start Audit →
             </Link>
           </div>
         ) : (
@@ -182,46 +226,141 @@ export default async function AreaDetailPage({ params }: Props) {
 
       {/* AI Summary */}
       {latestAudit?.ai_summary && (
-        <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-6 mb-5">
+        <div
+          style={{
+            background: 'rgba(91, 184, 212, 0.12)',
+            borderRadius: '12px',
+            border: '1px solid rgba(91, 184, 212, 0.25)',
+            padding: '20px 24px',
+            marginBottom: '20px',
+          }}
+        >
           <p
-            className="text-xs font-bold uppercase tracking-wider mb-3"
-            style={{ color: '#5BB8D4', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              fontSize: '11px',
+              fontWeight: 700,
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              color: '#2D8FBF',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              marginBottom: '10px',
+            }}
           >
-            Latest Audit Summary
+            ✨ Latest Audit Summary
           </p>
-          <p className="text-sm leading-relaxed" style={{ color: '#252850' }}>
+          <p style={{ fontSize: '14px', lineHeight: '1.65', color: '#252850', fontFamily: "'Plus Jakarta Sans', sans-serif", margin: 0 }}>
             {latestAudit.ai_summary}
           </p>
         </div>
       )}
 
       {/* Open action items */}
-      <div className="bg-white rounded-xl border border-[#e8edf2] shadow-sm p-5">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p
-              className="text-sm font-bold mb-0.5"
-              style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              {openItemCount ?? 0} open action {(openItemCount ?? 0) === 1 ? 'item' : 'items'}
-            </p>
-            <p className="text-sm" style={{ color: '#5B7FA6' }}>
-              {(openItemCount ?? 0) === 0
-                ? 'No open findings — this area is in good shape.'
-                : 'Assign owners and track progress to close findings.'}
-            </p>
-          </div>
-          {(openItemCount ?? 0) > 0 && (
-            <Link
-              href={`/actions?area=${areaId}`}
-              className="flex-shrink-0 px-4 py-2 rounded-lg text-sm font-semibold border border-[#d1dae6]"
-              style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              View →
-            </Link>
-          )}
+      <div style={{ background: '#ffffff', borderRadius: '12px', border: '1px solid #e8edf2', boxShadow: '0 1px 3px rgba(0,0,0,0.06)', padding: '20px 24px' }}>
+        {/* Section title + count badge */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
+          <h2
+            style={{
+              fontSize: '15px',
+              fontWeight: 700,
+              color: '#2D3272',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              margin: 0,
+            }}
+          >
+            Open Action Items
+          </h2>
+          <span
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minWidth: '22px',
+              height: '22px',
+              padding: '0 7px',
+              borderRadius: '999px',
+              fontSize: '12px',
+              fontWeight: 700,
+              color: '#ffffff',
+              background: openCount > 0 ? '#ef4444' : '#2DA870',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
+          >
+            {openCount}
+          </span>
         </div>
+
+        {/* Empty state */}
+        {openCount === 0 ? (
+          <p style={{ fontSize: '14px', color: '#2DA870', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif", margin: 0 }}>
+            ✓ No open action items for this area
+          </p>
+        ) : (
+          <>
+            {/* Item cards */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {(openItems ?? []).map((item) => (
+                <div
+                  key={item.id}
+                  style={{
+                    padding: '12px 16px',
+                    borderRadius: '10px',
+                    border: '1px solid #e8edf2',
+                    background: '#fafbfc',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px',
+                  }}
+                >
+                  <p
+                    style={{
+                      fontSize: '13px',
+                      color: '#252850',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      margin: 0,
+                      lineHeight: '1.5',
+                    }}
+                  >
+                    {item.description}
+                  </p>
+                  <span
+                    style={{
+                      flexShrink: 0,
+                      fontSize: '11px',
+                      fontWeight: 700,
+                      padding: '3px 10px',
+                      borderRadius: '999px',
+                      background: 'rgba(239, 68, 68, 0.1)',
+                      color: '#ef4444',
+                      fontFamily: "'Plus Jakarta Sans', sans-serif",
+                      textTransform: 'capitalize',
+                    }}
+                  >
+                    {item.status}
+                  </span>
+                </div>
+              ))}
+            </div>
+
+            {/* View all link */}
+            <div style={{ marginTop: '16px' }}>
+              <Link
+                href={`/actions?area=${areaId}`}
+                style={{
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#2D8FBF',
+                  textDecoration: 'none',
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                }}
+              >
+                View all action items →
+              </Link>
+            </div>
+          </>
+        )}
       </div>
+
     </div>
   )
 }
