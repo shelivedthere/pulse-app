@@ -40,7 +40,7 @@ export default async function ActionsPage({ searchParams }: Props) {
   // Fetch action items — join area name via separate map to keep types clean
   let itemsQuery = supabase
     .from('action_items')
-    .select('id, description, owner_name, due_date, status, area_id, created_at')
+    .select('id, description, owner_name, due_date, status, area_id, created_at, audit_id')
     .eq('org_id', orgId)
     .order('created_at', { ascending: false })
 

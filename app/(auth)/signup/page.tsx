@@ -260,7 +260,7 @@ function SignupForm() {
                 required
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Tracey Minutolo"
+                placeholder="Abby OpEx Lead"
                 style={{
                   width: '100%',
                   borderRadius: '0.5rem',

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import ScoreTrendChart from '@/components/dashboard/ScoreTrendChart'
+import AreaActionItems from '@/components/actions/AreaActionItems'
 
 interface Props {
   params: Promise<{ areaId: string }>
@@ -41,6 +42,8 @@ export default async function AreaDetailPage({ params }: Props) {
     .eq('id', user.id)
     .single()
 
+  const isAdmin = profile?.role === 'admin'
+
   if (!profile?.org_id) redirect('/onboarding')
 
   const orgId: string = profile.org_id
@@ -69,7 +72,7 @@ export default async function AreaDetailPage({ params }: Props) {
   // Open action items for this area (up to 3 for display)
   const { data: openItems, count: openItemCount } = await supabase
     .from('action_items')
-    .select('id, description, status', { count: 'exact' })
+    .select('id, description, status, audit_id', { count: 'exact' })
     .eq('area_id', areaId)
     .eq('org_id', orgId)
     .eq('status', 'open')
@@ -306,75 +309,27 @@ export default async function AreaDetailPage({ params }: Props) {
           </span>
         </div>
 
-        {/* Empty state */}
-        {openCount === 0 ? (
-          <p style={{ fontSize: '14px', color: '#2DA870', fontWeight: 600, fontFamily: "'Plus Jakarta Sans', sans-serif", margin: 0 }}>
-            ✓ No open action items for this area
-          </p>
-        ) : (
-          <>
-            {/* Item cards */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {(openItems ?? []).map((item) => (
-                <div
-                  key={item.id}
-                  style={{
-                    padding: '12px 16px',
-                    borderRadius: '10px',
-                    border: '1px solid #e8edf2',
-                    background: '#fafbfc',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    gap: '12px',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: '13px',
-                      color: '#252850',
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      margin: 0,
-                      lineHeight: '1.5',
-                    }}
-                  >
-                    {item.description}
-                  </p>
-                  <span
-                    style={{
-                      flexShrink: 0,
-                      fontSize: '11px',
-                      fontWeight: 700,
-                      padding: '3px 10px',
-                      borderRadius: '999px',
-                      background: 'rgba(239, 68, 68, 0.1)',
-                      color: '#ef4444',
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                      textTransform: 'capitalize',
-                    }}
-                  >
-                    {item.status}
-                  </span>
-                </div>
-              ))}
-            </div>
+        <AreaActionItems
+          initialItems={openItems ?? []}
+          isAdmin={isAdmin}
+        />
 
-            {/* View all link */}
-            <div style={{ marginTop: '16px' }}>
-              <Link
-                href={`/actions?area=${areaId}`}
-                style={{
-                  fontSize: '13px',
-                  fontWeight: 600,
-                  color: '#2D8FBF',
-                  textDecoration: 'none',
-                  fontFamily: "'Plus Jakarta Sans', sans-serif",
-                }}
-              >
-                View all action items →
-              </Link>
-            </div>
-          </>
+        {/* View all link */}
+        {openCount > 0 && (
+          <div style={{ marginTop: '16px' }}>
+            <Link
+              href={`/actions?area=${areaId}`}
+              style={{
+                fontSize: '13px',
+                fontWeight: 600,
+                color: '#2D8FBF',
+                textDecoration: 'none',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              View all action items →
+            </Link>
+          </div>
         )}
       </div>
 
