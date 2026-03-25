@@ -99,47 +99,107 @@ export default function AreaChecklist({ initialItems, areaId, orgId }: Props) {
           const activeInCat = catItems.filter(i => i.is_active).length
 
           return (
-            <div key={category} className="bg-white rounded-xl border border-[#e8edf2] shadow-sm overflow-hidden">
+            <div
+              key={category}
+              style={{
+                background: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e8edf2',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+              }}
+            >
               {/* Category header */}
               <div
-                className="flex items-center justify-between px-5 py-3 border-b border-[#f0f2f5]"
-                style={{ background: '#F5F7FA' }}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '12px 20px',
+                  borderBottom: '1px solid #f0f2f5',
+                  background: '#F5F7FA',
+                  borderTopLeftRadius: '12px',
+                  borderTopRightRadius: '12px',
+                }}
               >
                 <h3
-                  className="text-sm font-bold"
-                  style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+                  style={{ fontSize: '13px', fontWeight: 700, color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif", margin: 0 }}
                 >
                   {category}
                 </h3>
-                <span className="text-xs" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
+                <span style={{ fontSize: '11px', color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
                   {activeInCat}/{catItems.length} active
                 </span>
               </div>
 
               {/* Items with toggles */}
-              <div className="divide-y divide-[#f0f2f5]">
-                {catItems.map(item => (
-                  <div key={item.id} className="flex items-center justify-between px-5 py-3 gap-4">
+              <div>
+                {catItems.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '12px 20px',
+                      gap: '16px',
+                      boxSizing: 'border-box',
+                      borderBottom: idx < catItems.length - 1 ? '1px solid #f0f2f5' : 'none',
+                    }}
+                  >
                     <span
-                      className="text-sm flex-1"
-                      style={{ color: item.is_active ? '#252850' : '#B0B8C9' }}
+                      style={{
+                        fontSize: '14px',
+                        color: item.is_active ? '#252850' : '#B0B8C9',
+                        flex: 1,
+                        minWidth: 0,
+                      }}
                     >
                       {item.description}
                     </span>
                     {/* Toggle switch */}
-                    <button
-                      role="switch"
-                      aria-checked={item.is_active}
-                      onClick={() => handleToggle(item.id, item.is_active)}
-                      disabled={togglingId === item.id}
-                      className="relative inline-flex h-6 w-11 flex-shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none disabled:opacity-50"
-                      style={{ background: item.is_active ? '#2D8FBF' : '#d1dae6' }}
+                    <label
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        cursor: togglingId === item.id ? 'not-allowed' : 'pointer',
+                        flexShrink: 0,
+                        opacity: togglingId === item.id ? 0.5 : 1,
+                      }}
                     >
-                      <span
-                        className="inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform duration-200"
-                        style={{ transform: item.is_active ? 'translateX(20px)' : 'translateX(4px)' }}
+                      <input
+                        type="checkbox"
+                        checked={item.is_active}
+                        onChange={() => handleToggle(item.id, item.is_active)}
+                        disabled={togglingId === item.id}
+                        style={{ display: 'none' }}
                       />
-                    </button>
+                      <div
+                        style={{
+                          width: '44px',
+                          height: '24px',
+                          backgroundColor: item.is_active ? '#2D8FBF' : '#d1d5db',
+                          borderRadius: '12px',
+                          position: 'relative',
+                          transition: 'background-color 0.2s',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '2px',
+                            left: item.is_active ? '22px' : '2px',
+                            width: '20px',
+                            height: '20px',
+                            backgroundColor: 'white',
+                            borderRadius: '50%',
+                            transition: 'left 0.2s',
+                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                          }}
+                        />
+                      </div>
+                    </label>
                   </div>
                 ))}
               </div>
