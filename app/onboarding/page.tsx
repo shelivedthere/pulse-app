@@ -51,82 +51,286 @@ export default function OnboardingPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#F5F7FA] px-4">
-      <div className="w-full max-w-md">
+    <div
+      style={{
+        minHeight: '100vh',
+        background: '#f9fafb',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: '2rem 1rem',
+        fontFamily: "'Plus Jakarta Sans', sans-serif",
+      }}
+    >
+      {/* Card */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '560px',
+          background: '#FFFFFF',
+          borderRadius: '1rem',
+          boxShadow: '0 4px 24px rgba(45, 50, 114, 0.08), 0 1px 4px rgba(45, 50, 114, 0.06)',
+          padding: '2.5rem 2.5rem 2rem',
+        }}
+      >
         {/* Logo */}
-        <div className="text-center mb-8">
-          <span
-            className="inline-block font-extrabold text-2xl tracking-tight"
-            style={{ fontFamily: "'Plus Jakarta Sans', sans-serif", color: '#2D3272' }}
-          >
-            Pulse
+        <div style={{ textAlign: 'center', marginBottom: '1.25rem' }}>
+          <a href="/" style={{ textDecoration: 'none', display: 'inline-block' }}>
             <span
-              className="inline-block w-2.5 h-2.5 rounded-full ml-0.5 mb-0.5 align-middle"
-              style={{ background: '#F5D800' }}
-            />
-          </span>
+              style={{
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontWeight: 800,
+                fontSize: '1.5rem',
+                letterSpacing: '-0.02em',
+                color: '#2D3272',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '2px',
+              }}
+            >
+              Pulse
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  background: '#F5D800',
+                  marginLeft: '1px',
+                  marginBottom: '2px',
+                  flexShrink: 0,
+                }}
+              />
+            </span>
+          </a>
         </div>
 
-        {/* Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-[#e8edf2] px-8 py-10">
-          <div className="mb-8">
-            <p
-              className="text-xs font-bold uppercase tracking-wider mb-2"
-              style={{ color: '#2DA870', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              Step 1 of 1
-            </p>
-            <h1
-              className="text-2xl font-extrabold tracking-tight mb-2"
-              style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-            >
-              Name your organization
-            </h1>
-            <p className="text-sm" style={{ color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
-              This is usually your company or site name. You can change it later in Settings.
-            </p>
-          </div>
-
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-1.5">
-              <label
-                htmlFor="orgName"
-                className="text-sm font-semibold"
-                style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
-              >
-                Organization name
-              </label>
-              <input
-                id="orgName"
-                type="text"
-                autoFocus
-                required
-                value={orgName}
-                onChange={e => {
-                  setOrgName(e.target.value)
-                  if (error) setError(null)
-                }}
-                placeholder="e.g. Acme Manufacturing — Site A"
-                className="w-full rounded-lg border border-[#d1dae6] px-4 py-3 text-sm outline-none transition focus:border-[#2D8FBF] focus:ring-2 focus:ring-[#2D8FBF]/20"
-                style={{ color: '#252850', fontFamily: "'Inter', sans-serif" }}
-              />
-              {error && (
-                <p className="text-sm text-red-600">{error}</p>
-              )}
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full rounded-lg px-4 py-3 text-sm font-semibold text-white transition disabled:opacity-60 disabled:cursor-not-allowed"
+        {/* Step indicator */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginBottom: '2rem',
+          }}
+        >
+          <p
+            style={{
+              color: '#5B7FA6',
+              fontSize: '0.8125rem',
+              fontWeight: 500,
+              margin: 0,
+            }}
+          >
+            Step 1 of 2
+          </p>
+          <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+            <span
               style={{
+                display: 'inline-block',
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
                 background: '#2D8FBF',
+              }}
+            />
+            <span
+              style={{
+                display: 'inline-block',
+                width: '10px',
+                height: '10px',
+                borderRadius: '50%',
+                background: '#e5e7eb',
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Heading */}
+        <h1
+          style={{
+            color: '#2D3272',
+            fontWeight: 800,
+            fontSize: '1.625rem',
+            letterSpacing: '-0.02em',
+            marginBottom: '0.5rem',
+            textAlign: 'center',
+          }}
+        >
+          Let&apos;s set up your workspace
+        </h1>
+        <p
+          style={{
+            color: '#5B7FA6',
+            fontSize: '0.9375rem',
+            textAlign: 'center',
+            marginBottom: '2rem',
+            lineHeight: 1.5,
+          }}
+        >
+          This takes less than 2 minutes.{' '}
+          <span style={{ display: 'inline' }}>You can change everything later.</span>
+        </p>
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+          {/* Label + helper */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', marginBottom: '0.25rem' }}>
+            <label
+              htmlFor="orgName"
+              style={{
+                color: '#2D3272',
+                fontWeight: 600,
+                fontSize: '0.9375rem',
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
               }}
             >
-              {loading ? 'Setting up…' : 'Create organization →'}
-            </button>
-          </form>
+              Organization name
+            </label>
+            <p
+              style={{
+                color: '#5B7FA6',
+                fontSize: '0.8125rem',
+                margin: 0,
+                lineHeight: 1.5,
+              }}
+            >
+              This is usually your company or site name — e.g. Acme Corp, San Diego Plant
+            </p>
+          </div>
+
+          {/* Input */}
+          <input
+            id="orgName"
+            type="text"
+            autoFocus
+            required
+            value={orgName}
+            onChange={e => {
+              setOrgName(e.target.value)
+              if (error) setError(null)
+            }}
+            placeholder="e.g. Acme Manufacturing"
+            style={{
+              width: '100%',
+              borderRadius: '0.5rem',
+              border: '1.5px solid #e5e7eb',
+              padding: '0.875rem 1rem',
+              fontSize: '1rem',
+              color: '#252850',
+              outline: 'none',
+              fontFamily: "'Inter', sans-serif",
+              boxSizing: 'border-box',
+              transition: 'border-color 0.15s',
+            }}
+            onFocus={e => (e.currentTarget.style.borderColor = '#2D8FBF')}
+            onBlur={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
+          />
+
+          {/* Error */}
+          {error && (
+            <p
+              style={{
+                fontSize: '0.875rem',
+                borderRadius: '0.5rem',
+                background: '#fef2f2',
+                border: '1px solid #fecaca',
+                color: '#dc2626',
+                padding: '0.75rem 1rem',
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                margin: 0,
+              }}
+            >
+              {error}
+            </p>
+          )}
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              borderRadius: '0.5rem',
+              padding: '0 1rem',
+              minHeight: '52px',
+              background: loading ? '#5B7FA6' : '#2D8FBF',
+              color: '#FFFFFF',
+              fontWeight: 700,
+              fontSize: '1rem',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              border: 'none',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              opacity: loading ? 0.7 : 1,
+              marginTop: '1.5rem',
+              transition: 'background 0.15s, opacity 0.15s',
+            }}
+          >
+            {loading ? 'Setting up…' : 'Continue →'}
+          </button>
+        </form>
+
+        {/* Security note */}
+        <p
+          style={{
+            textAlign: 'center',
+            fontSize: '0.8125rem',
+            color: '#9ca3af',
+            marginTop: '1.5rem',
+            marginBottom: 0,
+            lineHeight: 1.5,
+          }}
+        >
+          🔒 Your data is private and secure. Only your team can see your organization.
+        </p>
+      </div>
+
+      {/* What's next preview */}
+      <div
+        style={{
+          marginTop: '2rem',
+          textAlign: 'center',
+          maxWidth: '560px',
+          width: '100%',
+          padding: '0 0.5rem',
+        }}
+      >
+        <p
+          style={{
+            color: '#9ca3af',
+            fontSize: '0.8125rem',
+            marginBottom: '0.625rem',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+          }}
+        >
+          After this you&apos;ll:
+        </p>
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.375rem',
+          }}
+        >
+          {[
+            'Add your first work area',
+            'Review your 6S audit template',
+            'Conduct your first audit',
+          ].map((step) => (
+            <p
+              key={step}
+              style={{
+                color: '#5B7FA6',
+                fontSize: '0.8125rem',
+                margin: 0,
+                fontFamily: "'Plus Jakarta Sans', sans-serif",
+              }}
+            >
+              → {step}
+            </p>
+          ))}
         </div>
       </div>
     </div>

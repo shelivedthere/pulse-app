@@ -69,29 +69,70 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
   // ── Empty state ──────────────────────────────────────────────
   if (areas.length === 0 && !showForm) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-center">
+      <div
+        style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '4rem 2rem',
+          textAlign: 'center',
+        }}
+      >
         <div
-          className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-6"
-          style={{ background: '#EBF0F8' }}
+          style={{
+            width: '72px',
+            height: '72px',
+            borderRadius: '1rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '4rem',
+            background: '#EBF0F8',
+            marginBottom: '1.5rem',
+          }}
         >
           🏭
         </div>
         <h2
-          className="text-xl font-extrabold mb-2"
-          style={{ color: '#2D3272', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+          style={{
+            fontSize: '1.75rem',
+            fontWeight: 800,
+            color: '#2D3272',
+            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            marginBottom: '0.75rem',
+          }}
         >
           {isAdmin ? 'Welcome to Pulse!' : 'No areas assigned'}
         </h2>
-        <p className="text-sm mb-8 max-w-xs" style={{ color: '#5B7FA6' }}>
+        <p
+          style={{
+            fontSize: '0.9375rem',
+            color: '#5B7FA6',
+            maxWidth: '22rem',
+            lineHeight: 1.6,
+            marginBottom: '2rem',
+          }}
+        >
           {isAdmin
             ? 'Add your first work area to get started — a warehouse, lab, or production floor.'
-            : 'You haven\'t been assigned to any areas yet. Contact your administrator to get access.'}
+            : "You haven't been assigned to any areas yet. Contact your administrator to get access."}
         </p>
         {isAdmin && (
           <button
             onClick={() => setShowForm(true)}
-            className="px-6 py-3 rounded-lg text-sm font-semibold text-white"
-            style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              padding: '0.875rem 2rem',
+              fontSize: '1rem',
+              minHeight: '52px',
+              borderRadius: '0.5rem',
+              fontWeight: 700,
+              color: '#FFFFFF',
+              background: '#2D8FBF',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
           >
             + Add your first area
           </button>
