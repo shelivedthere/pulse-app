@@ -25,6 +25,12 @@ export default function GettingStartedBanner({ hasAreas, hasAudit, firstAreaId }
     setDismissed(true)
   }
 
+  // All steps done — auto-dismiss and hide
+  if (mounted && !dismissed && hasAreas && hasAudit) {
+    localStorage.setItem(DISMISS_KEY, 'true')
+    return null
+  }
+
   if (!mounted || dismissed) return null
 
   const steps = [

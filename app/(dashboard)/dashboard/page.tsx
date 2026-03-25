@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import AreaList from '@/components/dashboard/AreaList'
 import GettingStartedBanner from '@/components/dashboard/GettingStartedBanner'
+import TemplateNudge from '@/components/dashboard/TemplateNudge'
 
 function fmt(n: number | null, decimals = 1) {
   return n == null ? '--' : n.toFixed(decimals)
@@ -135,6 +136,9 @@ export default async function DashboardPage({ searchParams }: Props) {
           firstAreaId={(allAreas ?? [])[0]?.id}
         />
       )}
+
+      {/* Template nudge — admin with areas but no audits yet */}
+      {isAdmin && hasAreas && !hasAudit && <TemplateNudge />}
 
       {/* Settings access notice for contributors */}
       {notice === 'settings-admin-only' && (

@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
+import FirstAuditModal, { shouldShowFirstAuditModal } from './FirstAuditModal'
 
 type Area = {
   id: string
@@ -38,6 +39,15 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
   const [areaName, setAreaName] = useState('')
   const [formError, setFormError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [firstAuditModalHref, setFirstAuditModalHref] = useState<string | null>(null)
+
+  function handleStartAudit(href: string) {
+    if (shouldShowFirstAuditModal()) {
+      setFirstAuditModalHref(href)
+    } else {
+      window.location.href = href
+    }
+  }
 
   async function handleAddArea(e: React.FormEvent) {
     e.preventDefault()
@@ -143,6 +153,14 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
 
   return (
     <div>
+      {/* First audit modal */}
+      {firstAuditModalHref && (
+        <FirstAuditModal
+          auditHref={firstAuditModalHref}
+          onClose={() => setFirstAuditModalHref(null)}
+        />
+      )}
+
       {/* Add area form — admin only */}
       {isAdmin && showForm && (
         <div
@@ -198,8 +216,18 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
         <div className="flex justify-end mb-5">
           <button
             onClick={() => setShowForm(true)}
-            className="px-4 py-2 rounded-lg text-sm font-semibold text-white"
-            style={{ background: '#2D8FBF', fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{
+              padding: '0.625rem 1.25rem',
+              fontSize: '0.9375rem',
+              fontWeight: 600,
+              minHeight: '44px',
+              borderRadius: '0.5rem',
+              background: '#2D8FBF',
+              color: '#ffffff',
+              border: 'none',
+              cursor: 'pointer',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+            }}
           >
             + Add area
           </button>
@@ -233,6 +261,25 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
               >
                 {area.name}
               </h3>
+
+              {/* Edit checklist link — admin only */}
+              {isAdmin && (
+                <Link
+                  href={`/areas/${area.id}/settings`}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.25rem',
+                    fontSize: '0.8125rem',
+                    color: '#2D8FBF',
+                    fontFamily: "'Plus Jakarta Sans', sans-serif",
+                    textDecoration: 'none',
+                    marginTop: '-4px',
+                  }}
+                >
+                  ✏️ Edit checklist
+                </Link>
+              )}
 
               {/* Score */}
               {hasScore ? (
@@ -281,8 +328,8 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
 
               {/* Action buttons */}
               <div style={{ marginTop: 'auto', paddingTop: '4px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <Link
-                  href={`/audit/${area.id}`}
+                <button
+                  onClick={() => handleStartAudit(`/audit/${area.id}`)}
                   style={{
                     padding: '8px 16px',
                     borderRadius: '8px',
@@ -291,11 +338,12 @@ export default function AreaList({ initialAreas, orgId, userId, isAdmin }: Props
                     background: '#2D8FBF',
                     color: '#ffffff',
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    textDecoration: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
                   }}
                 >
                   Start Audit
-                </Link>
+                </button>
                 <Link
                   href={`/areas/${area.id}`}
                   style={{

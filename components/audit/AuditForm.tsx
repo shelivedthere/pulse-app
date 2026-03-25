@@ -58,6 +58,7 @@ const SCORE_STYLES: Record<
 export default function AuditForm({ areaId, orgId, userId, items }: Props) {
   const router = useRouter()
   const [scores, setScores] = useState<Scores>({})
+  const [noteErrors, setNoteErrors] = useState<Record<string, boolean>>({})
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [focusedNote, setFocusedNote] = useState<string | null>(null)
@@ -71,17 +72,36 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
     return map
   }, [items])
 
-  const scoredCount = Object.keys(scores).length
   const totalCount = items.length
+
+  // An item counts toward progress only when truly complete:
+  // pass = done; partial/fail = done only when note is filled
+  function isItemComplete(itemId: string): boolean {
+    const scored = scores[itemId]
+    if (!scored) return false
+    if (scored.score === 'pass') return true
+    return scored.note.trim().length > 0
+  }
+
+  // For enabling the submit button — just needs a score selected
+  const scoredCount = Object.keys(scores).length
   const allScored = scoredCount === totalCount
   const remaining = totalCount - scoredCount
-  const progressPct = totalCount > 0 ? (scoredCount / totalCount) * 100 : 0
+
+  // For the progress bar — reflects true completion
+  const completedCount = items.filter(item => isItemComplete(item.id)).length
+  const allComplete = completedCount === totalCount
+  const progressPct = totalCount > 0 ? (completedCount / totalCount) * 100 : 0
 
   function setScore(itemId: string, score: ScoreValue) {
     setScores(prev => ({
       ...prev,
       [itemId]: { score, note: prev[itemId]?.note ?? '' },
     }))
+    // Switching to pass clears any note error for this item
+    if (score === 'pass' && noteErrors[itemId]) {
+      setNoteErrors(prev => ({ ...prev, [itemId]: false }))
+    }
   }
 
   function setNote(itemId: string, note: string) {
@@ -89,11 +109,41 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
       ...prev,
       [itemId]: { score: prev[itemId]?.score ?? 'fail', note },
     }))
+    // Clear note error for this item as user types
+    if (noteErrors[itemId] && note.trim().length > 0) {
+      setNoteErrors(prev => ({ ...prev, [itemId]: false }))
+    }
   }
 
   async function handleSubmit() {
+    // Step 1: all items must have a score selected
     if (!allScored) {
       setError(`Please score all ${totalCount} items before submitting.`)
+      return
+    }
+
+    // Step 2: all partial/fail items must have a non-empty description
+    const missingNoteIds = items
+      .filter(item => {
+        const scored = scores[item.id]
+        return (
+          (scored.score === 'partial' || scored.score === 'fail') &&
+          !scored.note.trim()
+        )
+      })
+      .map(item => item.id)
+
+    if (missingNoteIds.length > 0) {
+      const newErrors: Record<string, boolean> = {}
+      for (const id of missingNoteIds) newErrors[id] = true
+      setNoteErrors(newErrors)
+      const count = missingNoteIds.length
+      setError(
+        `${count} finding${count !== 1 ? 's' : ''} need${count === 1 ? 's' : ''} descriptions`
+      )
+      document
+        .getElementById(`audit-item-${missingNoteIds[0]}`)
+        ?.scrollIntoView({ behavior: 'smooth', block: 'center' })
       return
     }
 
@@ -135,6 +185,12 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
     }
   }
 
+  // Determine sticky bar state
+  const hasMissingNotes = Object.values(noteErrors).some(Boolean)
+  const stickyMessage = hasMissingNotes
+    ? 'Please describe all findings before submitting'
+    : error
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', paddingBottom: '9rem' }}>
 
@@ -161,7 +217,7 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
             style={{
               height: '100%',
               borderRadius: '999px',
-              background: allScored ? '#2DA870' : '#2D8FBF',
+              background: allComplete ? '#2DA870' : '#2D8FBF',
               width: `${progressPct}%`,
               transition: 'width 0.3s ease',
             }}
@@ -176,7 +232,7 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
             margin: 0,
           }}
         >
-          {scoredCount} of {totalCount} items scored
+          {completedCount} of {totalCount} items complete
         </p>
       </div>
 
@@ -239,9 +295,11 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
               const scored = scores[item.id]
               const selected = scored?.score
               const isNoteActive = selected === 'partial' || selected === 'fail'
+              const hasNoteError = noteErrors[item.id] === true
 
               return (
                 <div
+                  id={`audit-item-${item.id}`}
                   key={item.id}
                   style={{
                     padding: '16px 20px',
@@ -297,33 +355,67 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
 
                   {/* Note field — visible for partial or fail */}
                   {isNoteActive && (
-                    <textarea
-                      value={scored?.note ?? ''}
-                      onChange={e => setNote(item.id, e.target.value)}
-                      onFocus={() => setFocusedNote(item.id)}
-                      onBlur={() => setFocusedNote(null)}
-                      placeholder="Describe the finding..."
-                      rows={3}
-                      style={{
-                        width: '100%',
-                        borderRadius: '8px',
-                        border: focusedNote === item.id
-                          ? '1.5px solid #2D8FBF'
-                          : '1.5px solid #d1dae6',
-                        padding: '10px 12px',
-                        fontSize: '14px',
-                        color: '#252850',
-                        fontFamily: "'Inter', sans-serif",
-                        resize: 'none',
-                        outline: 'none',
-                        boxSizing: 'border-box',
-                        background: '#ffffff',
-                        transition: 'border-color 0.15s ease',
-                        boxShadow: focusedNote === item.id
-                          ? '0 0 0 3px rgba(45,143,191,0.15)'
-                          : 'none',
-                      }}
-                    />
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      {/* Label */}
+                      <label
+                        style={{
+                          fontSize: '12px',
+                          fontWeight: 600,
+                          color: '#2D3272',
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        }}
+                      >
+                        Finding description{' '}
+                        <span style={{ color: '#ef4444' }}>*</span>
+                      </label>
+
+                      {/* Textarea */}
+                      <textarea
+                        value={scored?.note ?? ''}
+                        onChange={e => setNote(item.id, e.target.value)}
+                        onFocus={() => setFocusedNote(item.id)}
+                        onBlur={() => setFocusedNote(null)}
+                        placeholder="Required — describe what you observed..."
+                        rows={3}
+                        style={{
+                          width: '100%',
+                          borderRadius: '8px',
+                          border: hasNoteError
+                            ? '1.5px solid #ef4444'
+                            : focusedNote === item.id
+                            ? '1.5px solid #2D8FBF'
+                            : '1.5px solid #e5e7eb',
+                          padding: '10px 12px',
+                          fontSize: '14px',
+                          color: '#252850',
+                          fontFamily: "'Inter', sans-serif",
+                          resize: 'none',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          background: hasNoteError ? 'rgba(239,68,68,0.03)' : '#ffffff',
+                          transition: 'border-color 0.15s ease',
+                          boxShadow: hasNoteError
+                            ? '0 0 0 3px rgba(239,68,68,0.1)'
+                            : focusedNote === item.id
+                            ? '0 0 0 3px rgba(45,143,191,0.15)'
+                            : 'none',
+                        }}
+                      />
+
+                      {/* Inline error */}
+                      {hasNoteError && (
+                        <p
+                          style={{
+                            margin: 0,
+                            fontSize: '0.75rem',
+                            color: '#ef4444',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                          }}
+                        >
+                          Please describe this finding
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
               )
@@ -346,7 +438,7 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
         }}
       >
         <div style={{ maxWidth: '672px', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {error && (
+          {stickyMessage && (
             <p
               style={{
                 fontSize: '13px',
@@ -356,7 +448,7 @@ export default function AuditForm({ areaId, orgId, userId, items }: Props) {
                 fontFamily: "'Plus Jakarta Sans', sans-serif",
               }}
             >
-              {error}
+              {stickyMessage}
             </p>
           )}
           <button
