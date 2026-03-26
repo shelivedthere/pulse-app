@@ -94,10 +94,22 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
   const [items, setItems] = useState<ActionItem[]>(initialItems)
   const [areaFilter, setAreaFilter] = useState(initialAreaFilter)
   const [statusFilter, setStatusFilter] = useState('all')
-  const [ownerDraft, setOwnerDraft] = useState<Record<string, string>>({})
+  const [ownerFilter, setOwnerFilter] = useState('all')
+  const [sortOrder, setSortOrder] = useState('due_asc')
   const [savingId, setSavingId] = useState<string | null>(null)
 
-  // Edit state
+  // Owner edit state (explicit save pattern)
+  const [ownerEditingId, setOwnerEditingId] = useState<string | null>(null)
+  const [ownerInputValue, setOwnerInputValue] = useState('')
+  const [ownerSavingId, setOwnerSavingId] = useState<string | null>(null)
+
+  // Due date edit state
+  const [dueDateEditingId, setDueDateEditingId] = useState<string | null>(null)
+  const [dueDateSaving, setDueDateSaving] = useState(false)
+  const [dueDateSavedId, setDueDateSavedId] = useState<string | null>(null)
+  const [dueDateHoverId, setDueDateHoverId] = useState<string | null>(null)
+
+  // Description edit state
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editDraft, setEditDraft] = useState('')
   const [editSaving, setEditSaving] = useState(false)
@@ -110,14 +122,56 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
   // Add modal
   const [showAddModal, setShowAddModal] = useState(false)
 
-  const filtered = useMemo(
-    () => items.filter(item => {
+  // Derive unique owners with counts for filter dropdown
+  const ownerOptions = useMemo(() => {
+    const counts = new Map<string, number>()
+    let unassignedCount = 0
+    for (const item of items) {
+      if (item.owner_name) {
+        counts.set(item.owner_name, (counts.get(item.owner_name) ?? 0) + 1)
+      } else {
+        unassignedCount++
+      }
+    }
+    return {
+      owners: Array.from(counts.entries())
+        .map(([name, count]) => ({ name, count }))
+        .sort((a, b) => a.name.localeCompare(b.name)),
+      unassignedCount,
+    }
+  }, [items])
+
+  const filtered = useMemo(() => {
+    let result = items.filter(item => {
       if (areaFilter !== 'all' && item.area_id !== areaFilter) return false
       if (statusFilter !== 'all' && item.status !== statusFilter) return false
+      if (ownerFilter === 'unassigned') {
+        if (item.owner_name !== null && item.owner_name !== '') return false
+      } else if (ownerFilter !== 'all') {
+        if (item.owner_name !== ownerFilter) return false
+      }
       return true
-    }),
-    [items, areaFilter, statusFilter]
-  )
+    })
+
+    result = [...result].sort((a, b) => {
+      if (sortOrder === 'due_asc' || sortOrder === 'due_desc') {
+        const aNull = !a.due_date
+        const bNull = !b.due_date
+        if (aNull && bNull) return 0
+        if (aNull) return 1
+        if (bNull) return -1
+        const diff = new Date(a.due_date!).getTime() - new Date(b.due_date!).getTime()
+        return sortOrder === 'due_asc' ? diff : -diff
+      }
+      if (sortOrder === 'created_desc') {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      }
+      // created_asc
+      return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+    })
+
+    return result
+  }, [items, areaFilter, statusFilter, ownerFilter, sortOrder])
 
   async function handleStatusChange(id: string, status: StatusValue) {
     setSavingId(id)
@@ -127,22 +181,41 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
     setSavingId(null)
   }
 
-  async function handleOwnerBlur(id: string) {
-    const draft = ownerDraft[id]
-    if (draft === undefined) return
-    setSavingId(id)
-    const owner_name = draft.trim() || null
+  function startOwnerEdit(item: ActionItem) {
+    setOwnerEditingId(item.id)
+    setOwnerInputValue(item.owner_name ?? '')
+  }
+
+  function cancelOwnerEdit() {
+    setOwnerEditingId(null)
+    setOwnerInputValue('')
+  }
+
+  async function saveOwner(id: string) {
+    setOwnerSavingId(id)
+    const owner_name = ownerInputValue.trim() || null
     const supabase = createClient()
     const { error } = await supabase.from('action_items').update({ owner_name }).eq('id', id)
     if (!error) {
       setItems(prev => prev.map(i => i.id === id ? { ...i, owner_name } : i))
-      setOwnerDraft(prev => { const n = { ...prev }; delete n[id]; return n })
+      setOwnerEditingId(null)
+      setOwnerInputValue('')
     }
-    setSavingId(null)
+    setOwnerSavingId(null)
   }
 
-  function ownerValue(item: ActionItem) {
-    return ownerDraft[item.id] !== undefined ? ownerDraft[item.id] : (item.owner_name ?? '')
+  async function handleDueDateChange(id: string, value: string) {
+    setDueDateSaving(true)
+    const due_date = value || null
+    const supabase = createClient()
+    const { error } = await supabase.from('action_items').update({ due_date }).eq('id', id)
+    if (!error) {
+      setItems(prev => prev.map(i => i.id === id ? { ...i, due_date } : i))
+      setDueDateSavedId(id)
+      setTimeout(() => setDueDateSavedId(prev => prev === id ? null : prev), 2000)
+    }
+    setDueDateSaving(false)
+    setDueDateEditingId(null)
   }
 
   function startEdit(item: ActionItem) {
@@ -182,7 +255,7 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
     setDeletingId(null)
   }
 
-  const isFiltered = areaFilter !== 'all' || statusFilter !== 'all'
+  const isFiltered = areaFilter !== 'all' || statusFilter !== 'all' || ownerFilter !== 'all'
 
   const selectStyle: React.CSSProperties = {
     borderRadius: '8px',
@@ -228,13 +301,15 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
         marginBottom: '24px',
         flexWrap: 'wrap',
       }}>
-        {/* Filters */}
+        {/* Filters + Sort */}
         <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '12px' }}>
+          {/* Area filter */}
           <select value={areaFilter} onChange={e => setAreaFilter(e.target.value)} style={selectStyle}>
             <option value="all">All areas</option>
             {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
 
+          {/* Status filter */}
           <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)} style={selectStyle}>
             <option value="all">All statuses</option>
             <option value="open">Open</option>
@@ -242,6 +317,33 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
             <option value="closed">Closed</option>
           </select>
 
+          {/* Owner filter */}
+          <select value={ownerFilter} onChange={e => setOwnerFilter(e.target.value)} style={selectStyle}>
+            <option value="all">All owners</option>
+            <option value="unassigned">Unassigned ({ownerOptions.unassignedCount})</option>
+            {ownerOptions.owners.map(({ name, count }) => (
+              <option key={name} value={name}>{name} ({count})</option>
+            ))}
+          </select>
+
+          {/* Sort */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{
+              fontSize: '0.8rem', color: '#5B7FA6',
+              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              whiteSpace: 'nowrap',
+            }}>
+              Sort by
+            </span>
+            <select value={sortOrder} onChange={e => setSortOrder(e.target.value)} style={selectStyle}>
+              <option value="due_asc">Due date (earliest first)</option>
+              <option value="due_desc">Due date (latest first)</option>
+              <option value="created_desc">Date created (newest first)</option>
+              <option value="created_asc">Date created (oldest first)</option>
+            </select>
+          </div>
+
+          {/* Item count */}
           <span style={{ fontSize: '0.85rem', color: '#5B7FA6', fontFamily: "'Plus Jakarta Sans', sans-serif" }}>
             {isFiltered
               ? `Showing ${filtered.length} of ${items.length} ${items.length === 1 ? 'item' : 'items'}`
@@ -250,7 +352,7 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
 
           {isFiltered && (
             <button
-              onClick={() => { setAreaFilter('all'); setStatusFilter('all') }}
+              onClick={() => { setAreaFilter('all'); setStatusFilter('all'); setOwnerFilter('all') }}
               style={{
                 background: 'none', border: 'none', color: '#2D8FBF',
                 fontSize: '0.85rem', cursor: 'pointer', padding: 0,
@@ -320,6 +422,11 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
             const isEditing = editingId === item.id
             const isConfirmingDelete = confirmDeleteId === item.id
             const isEdited = editedIds.has(item.id)
+            const isOwnerEditing = ownerEditingId === item.id
+            const isOwnerSaving = ownerSavingId === item.id
+            const isDueDateEditing = dueDateEditingId === item.id
+            const isDueDateSaved = dueDateSavedId === item.id
+            const isDueDateHovered = dueDateHoverId === item.id
 
             return (
               <div
@@ -505,32 +612,137 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
 
                 {/* Owner + due date row */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {/* Owner — explicit save pattern */}
                   <div>
-                    <label style={labelStyle}>Owner</label>
-                    <input
-                      type="text"
-                      value={ownerValue(item)}
-                      onChange={e => setOwnerDraft(prev => ({ ...prev, [item.id]: e.target.value }))}
-                      onBlur={() => handleOwnerBlur(item.id)}
-                      onKeyDown={e => e.key === 'Enter' && e.currentTarget.blur()}
-                      placeholder="Assign owner…"
-                      disabled={isSaving}
-                      style={{
-                        width: '100%', borderRadius: '8px', border: '1px solid #d1dae6',
-                        padding: '8px 12px', fontSize: '0.875rem', color: '#252850',
-                        fontFamily: "'Inter', sans-serif", outline: 'none',
-                        boxSizing: 'border-box', backgroundColor: '#ffffff',
-                      }}
-                    />
+                    <span style={labelStyle}>Owner</span>
+                    {isOwnerEditing ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <input
+                            type="text"
+                            value={ownerInputValue}
+                            onChange={e => setOwnerInputValue(e.target.value)}
+                            onKeyDown={e => e.key === 'Enter' && saveOwner(item.id)}
+                            autoFocus
+                            placeholder="Enter owner name…"
+                            disabled={isOwnerSaving}
+                            style={{
+                              flex: 1, borderRadius: '8px', border: '1.5px solid #2D8FBF',
+                              padding: '8px 12px', fontSize: '0.875rem', color: '#252850',
+                              fontFamily: "'Inter', sans-serif", outline: 'none',
+                              boxSizing: 'border-box', backgroundColor: '#ffffff',
+                              boxShadow: '0 0 0 3px rgba(45,143,191,0.12)',
+                            }}
+                          />
+                          <button
+                            onClick={() => saveOwner(item.id)}
+                            disabled={isOwnerSaving}
+                            style={{
+                              padding: '8px 16px', borderRadius: '8px',
+                              background: '#2D8FBF', color: '#ffffff',
+                              fontWeight: 600, fontSize: '0.875rem',
+                              fontFamily: "'Plus Jakarta Sans', sans-serif",
+                              border: 'none', cursor: isOwnerSaving ? 'not-allowed' : 'pointer',
+                              opacity: isOwnerSaving ? 0.7 : 1,
+                              whiteSpace: 'nowrap',
+                            }}
+                          >
+                            {isOwnerSaving ? 'Saving…' : 'Save'}
+                          </button>
+                        </div>
+                        <button
+                          onClick={cancelOwnerEdit}
+                          style={{
+                            background: 'none', border: 'none',
+                            color: '#5B7FA6', fontSize: '0.8125rem',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            cursor: 'pointer', padding: 0,
+                            textDecoration: 'underline', alignSelf: 'flex-start',
+                          }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => startOwnerEdit(item)}
+                        style={{
+                          background: 'none', border: 'none', padding: 0,
+                          cursor: 'pointer', display: 'block', textAlign: 'left',
+                          fontSize: '0.875rem',
+                          color: item.owner_name ? '#252850' : '#5B7FA6',
+                          fontStyle: item.owner_name ? 'normal' : 'italic',
+                          fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        }}
+                      >
+                        {item.owner_name ?? 'Click to assign owner'}
+                      </button>
+                    )}
                   </div>
+
+                  {/* Due date — clickable to edit */}
                   <div>
                     <span style={labelStyle}>Due</span>
-                    <span style={{
-                      fontSize: '0.875rem', fontWeight: 600, color: dateColor,
-                      fontFamily: "'Plus Jakarta Sans', sans-serif",
-                    }}>
-                      {dateLabel}
-                    </span>
+                    {isDueDateEditing ? (
+                      <input
+                        type="date"
+                        defaultValue={item.due_date ?? ''}
+                        autoFocus
+                        disabled={dueDateSaving}
+                        onChange={e => handleDueDateChange(item.id, e.target.value)}
+                        onBlur={() => setDueDateEditingId(null)}
+                        style={{
+                          borderRadius: '8px', border: '1.5px solid #2D8FBF',
+                          padding: '6px 10px', fontSize: '0.875rem', color: '#252850',
+                          fontFamily: "'Inter', sans-serif", outline: 'none',
+                          boxShadow: '0 0 0 3px rgba(45,143,191,0.12)',
+                          backgroundColor: '#ffffff',
+                        }}
+                      />
+                    ) : (
+                      <button
+                        onClick={() => setDueDateEditingId(item.id)}
+                        onMouseEnter={() => setDueDateHoverId(item.id)}
+                        onMouseLeave={() => setDueDateHoverId(null)}
+                        style={{
+                          background: 'none', border: 'none', padding: 0,
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+                        }}
+                      >
+                        {item.due_date ? (
+                          <span style={{
+                            fontSize: '0.875rem', fontWeight: 600,
+                            color: isDueDateHovered ? '#2D8FBF' : dateColor,
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            textDecoration: isDueDateHovered ? 'underline' : 'none',
+                            transition: 'color 0.15s',
+                          }}>
+                            {dateLabel}
+                            {isDueDateHovered && (
+                              <span style={{ marginLeft: '4px', fontSize: '0.75rem' }}>✏️</span>
+                            )}
+                          </span>
+                        ) : (
+                          <span style={{
+                            fontSize: '0.875rem', fontWeight: 600,
+                            color: '#2D8FBF',
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                            textDecoration: isDueDateHovered ? 'underline' : 'none',
+                            transition: 'color 0.15s',
+                          }}>
+                            + Add due date
+                          </span>
+                        )}
+                        {isDueDateSaved && (
+                          <span style={{
+                            color: '#2DA870', fontSize: '0.8rem', fontWeight: 600,
+                            fontFamily: "'Plus Jakarta Sans', sans-serif",
+                          }}>
+                            Saved ✓
+                          </span>
+                        )}
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
