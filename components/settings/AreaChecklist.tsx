@@ -74,7 +74,7 @@ export default function AreaChecklist({ initialItems, areaId, orgId }: Props) {
 
   return (
     <div>
-      {/* Active count summary */}
+{/* Active count summary */}
       <div
         className="flex items-center gap-2 mb-6 px-4 py-3 rounded-lg"
         style={{ background: '#EBF6FA' }}
@@ -158,48 +158,32 @@ export default function AreaChecklist({ initialItems, areaId, orgId }: Props) {
                       {item.description}
                     </span>
                     {/* Toggle switch */}
-                    <label
+                    <div
+                      onClick={() => !togglingId && handleToggle(item.id, item.is_active)}
                       style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
+                        width: '44px',
+                        height: '24px',
+                        backgroundColor: item.is_active ? '#2D8FBF' : '#9ca3af',
+                        borderRadius: '12px',
                         cursor: togglingId === item.id ? 'not-allowed' : 'pointer',
+                        position: 'relative',
                         flexShrink: 0,
                         opacity: togglingId === item.id ? 0.5 : 1,
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={item.is_active}
-                        onChange={() => handleToggle(item.id, item.is_active)}
-                        disabled={togglingId === item.id}
-                        style={{ display: 'none' }}
-                      />
                       <div
                         style={{
-                          width: '44px',
-                          height: '24px',
-                          backgroundColor: item.is_active ? '#2D8FBF' : '#d1d5db',
-                          borderRadius: '12px',
-                          position: 'relative',
-                          transition: 'background-color 0.2s',
-                          flexShrink: 0,
+                          position: 'absolute',
+                          top: '2px',
+                          left: item.is_active ? '22px' : '2px',
+                          width: '20px',
+                          height: '20px',
+                          backgroundColor: 'white',
+                          borderRadius: '50%',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.3)',
                         }}
-                      >
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '2px',
-                            left: item.is_active ? '22px' : '2px',
-                            width: '20px',
-                            height: '20px',
-                            backgroundColor: 'white',
-                            borderRadius: '50%',
-                            transition: 'left 0.2s',
-                            boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
-                          }}
-                        />
-                      </div>
-                    </label>
+                      />
+                    </div>
                   </div>
                 ))}
               </div>

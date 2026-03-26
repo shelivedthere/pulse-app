@@ -71,7 +71,7 @@ export default async function AreaSettingsPage({ params }: Props) {
 
   return (
     <div className="max-w-[1120px] mx-auto py-10">
-      {/* Back link */}
+{/* Back link */}
       <Link
         href={`/areas/${areaId}`}
         className="inline-flex items-center gap-1.5 text-sm font-semibold mb-6"
