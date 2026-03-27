@@ -6,10 +6,12 @@ import type { ActionItem } from './ActionItemList'
 
 type StatusValue = 'open' | 'in_progress' | 'closed'
 type Area = { id: string; name: string }
+type TeamMember = { id: string; email: string; full_name: string | null }
 
 interface Props {
   areas: Area[]
   orgId: string
+  teamMembers: TeamMember[]
   onAdd: (item: ActionItem) => void
   onClose: () => void
 }
@@ -33,7 +35,7 @@ const labelStyle: React.CSSProperties = {
   fontFamily: "'Plus Jakarta Sans', sans-serif",
 }
 
-export default function AddActionItemModal({ areas, orgId, onAdd, onClose }: Props) {
+export default function AddActionItemModal({ areas, orgId, teamMembers, onAdd, onClose }: Props) {
   const [areaId, setAreaId] = useState(areas[0]?.id ?? '')
   const [description, setDescription] = useState('')
   const [ownerName, setOwnerName] = useState('')
@@ -158,15 +160,37 @@ export default function AddActionItemModal({ areas, orgId, onAdd, onClose }: Pro
               Owner{' '}
               <span style={{ color: '#9ca3af', fontWeight: 400, fontSize: '0.8125rem' }}>(optional)</span>
             </label>
-            <input
-              type="text"
-              value={ownerName}
-              onChange={e => setOwnerName(e.target.value)}
-              placeholder="e.g. Jane Smith"
-              style={{ ...inputStyle, fontFamily: "'Inter', sans-serif" }}
-              onFocus={e => (e.currentTarget.style.borderColor = '#2D8FBF')}
-              onBlur={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
-            />
+            {teamMembers.length > 0 ? (
+              <select
+                value={ownerName}
+                onChange={e => setOwnerName(e.target.value)}
+                style={{
+                  ...inputStyle,
+                  fontFamily: "'Plus Jakarta Sans', sans-serif",
+                  cursor: 'pointer',
+                  minHeight: '44px',
+                }}
+                onFocus={e => (e.currentTarget.style.borderColor = '#2D8FBF')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
+              >
+                <option value="">Unassigned</option>
+                {teamMembers.map(m => (
+                  <option key={m.id} value={m.email}>
+                    {m.full_name || m.email}
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <input
+                type="text"
+                value={ownerName}
+                onChange={e => setOwnerName(e.target.value)}
+                placeholder="e.g. Jane Smith"
+                style={{ ...inputStyle, fontFamily: "'Inter', sans-serif" }}
+                onFocus={e => (e.currentTarget.style.borderColor = '#2D8FBF')}
+                onBlur={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
+              />
+            )}
           </div>
 
           {/* Due date */}

@@ -19,12 +19,19 @@ export type ActionItem = {
 }
 
 type Area = { id: string; name: string }
+type TeamMember = { id: string; email: string; full_name: string | null }
 
 interface Props {
   initialItems: ActionItem[]
   areas: Area[]
   orgId: string
   initialAreaFilter?: string
+  teamMembers: TeamMember[]
+}
+
+function getOwnerDisplayName(ownerEmail: string, teamMembers: TeamMember[]): string {
+  const member = teamMembers.find(m => m.email === ownerEmail)
+  return member ? (member.full_name || member.email) : ownerEmail
 }
 
 const STATUS_LABELS: Record<StatusValue, string> = {
@@ -90,7 +97,7 @@ function SourceBadge({ item, isEdited }: { item: ActionItem; isEdited: boolean }
   )
 }
 
-export default function ActionItemList({ initialItems, areas, orgId, initialAreaFilter = 'all' }: Props) {
+export default function ActionItemList({ initialItems, areas, orgId, initialAreaFilter = 'all', teamMembers }: Props) {
   const [items, setItems] = useState<ActionItem[]>(initialItems)
   const [areaFilter, setAreaFilter] = useState(initialAreaFilter)
   const [statusFilter, setStatusFilter] = useState('all')
@@ -133,13 +140,14 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
         unassignedCount++
       }
     }
+    const memberMap = new Map(teamMembers.map(m => [m.email, m.full_name || m.email]))
     return {
       owners: Array.from(counts.entries())
-        .map(([name, count]) => ({ name, count }))
-        .sort((a, b) => a.name.localeCompare(b.name)),
+        .map(([value, count]) => ({ value, label: memberMap.get(value) ?? value, count }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
       unassignedCount,
     }
-  }, [items])
+  }, [items, teamMembers])
 
   const filtered = useMemo(() => {
     let result = items.filter(item => {
@@ -287,6 +295,7 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
         <AddActionItemModal
           areas={areas}
           orgId={orgId}
+          teamMembers={teamMembers}
           onAdd={item => setItems(prev => [item, ...prev])}
           onClose={() => setShowAddModal(false)}
         />
@@ -321,8 +330,8 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
           <select value={ownerFilter} onChange={e => setOwnerFilter(e.target.value)} style={selectStyle}>
             <option value="all">All owners</option>
             <option value="unassigned">Unassigned ({ownerOptions.unassignedCount})</option>
-            {ownerOptions.owners.map(({ name, count }) => (
-              <option key={name} value={name}>{name} ({count})</option>
+            {ownerOptions.owners.map(({ value, label, count }) => (
+              <option key={value} value={value}>{label} ({count})</option>
             ))}
           </select>
 
@@ -618,22 +627,46 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
                     {isOwnerEditing ? (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                          <input
-                            type="text"
-                            value={ownerInputValue}
-                            onChange={e => setOwnerInputValue(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && saveOwner(item.id)}
-                            autoFocus
-                            placeholder="Enter owner name…"
-                            disabled={isOwnerSaving}
-                            style={{
-                              flex: 1, borderRadius: '8px', border: '1.5px solid #2D8FBF',
-                              padding: '8px 12px', fontSize: '0.875rem', color: '#252850',
-                              fontFamily: "'Inter', sans-serif", outline: 'none',
-                              boxSizing: 'border-box', backgroundColor: '#ffffff',
-                              boxShadow: '0 0 0 3px rgba(45,143,191,0.12)',
-                            }}
-                          />
+                          {teamMembers.length > 0 ? (
+                            <select
+                              value={ownerInputValue}
+                              onChange={e => setOwnerInputValue(e.target.value)}
+                              autoFocus
+                              disabled={isOwnerSaving}
+                              style={{
+                                flex: 1, borderRadius: '8px', border: '1.5px solid #2D8FBF',
+                                padding: '8px 12px', fontSize: '0.875rem', color: '#252850',
+                                fontFamily: "'Plus Jakarta Sans', sans-serif", outline: 'none',
+                                boxSizing: 'border-box', backgroundColor: '#ffffff',
+                                boxShadow: '0 0 0 3px rgba(45,143,191,0.12)',
+                                minHeight: '44px', cursor: 'pointer',
+                              }}
+                            >
+                              <option value="">Unassigned</option>
+                              {teamMembers.map(m => (
+                                <option key={m.id} value={m.email}>
+                                  {m.full_name || m.email}
+                                </option>
+                              ))}
+                            </select>
+                          ) : (
+                            <input
+                              type="text"
+                              value={ownerInputValue}
+                              onChange={e => setOwnerInputValue(e.target.value)}
+                              onKeyDown={e => e.key === 'Enter' && saveOwner(item.id)}
+                              autoFocus
+                              placeholder="Enter owner name…"
+                              disabled={isOwnerSaving}
+                              style={{
+                                flex: 1, borderRadius: '8px', border: '1.5px solid #2D8FBF',
+                                padding: '8px 12px', fontSize: '0.875rem', color: '#252850',
+                                fontFamily: "'Inter', sans-serif", outline: 'none',
+                                boxSizing: 'border-box', backgroundColor: '#ffffff',
+                                boxShadow: '0 0 0 3px rgba(45,143,191,0.12)',
+                              }}
+                            />
+                          )}
                           <button
                             onClick={() => saveOwner(item.id)}
                             disabled={isOwnerSaving}
@@ -668,14 +701,21 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
                         onClick={() => startOwnerEdit(item)}
                         style={{
                           background: 'none', border: 'none', padding: 0,
-                          cursor: 'pointer', display: 'block', textAlign: 'left',
-                          fontSize: '0.875rem',
-                          color: item.owner_name ? '#252850' : '#5B7FA6',
-                          fontStyle: item.owner_name ? 'normal' : 'italic',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px',
+                          textAlign: 'left', fontSize: '0.875rem',
                           fontFamily: "'Plus Jakarta Sans', sans-serif",
                         }}
                       >
-                        {item.owner_name ?? 'Click to assign owner'}
+                        <span style={{ fontSize: '0.875rem' }}>👤</span>
+                        {item.owner_name ? (
+                          <span style={{ color: '#252850' }}>
+                            {getOwnerDisplayName(item.owner_name, teamMembers)}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#5B7FA6', fontStyle: 'italic' }}>
+                            Click to assign owner
+                          </span>
+                        )}
                       </button>
                     )}
                   </div>

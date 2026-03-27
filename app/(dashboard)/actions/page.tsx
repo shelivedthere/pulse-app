@@ -31,6 +31,13 @@ export default async function ActionsPage({ searchParams }: Props) {
     .eq('org_id', orgId)
     .order('name', { ascending: true })
 
+  // Fetch team members for owner dropdown
+  const { data: teamMembers } = await supabase
+    .from('profiles')
+    .select('id, email, full_name')
+    .eq('org_id', orgId)
+    .order('full_name', { ascending: true })
+
   // For contributors: scope to their assigned area
   let allowedAreaIds: string[] | null = null
   if (!isAdmin) {
@@ -76,6 +83,7 @@ export default async function ActionsPage({ searchParams }: Props) {
         areas={areas ?? []}
         orgId={orgId}
         initialAreaFilter={initialAreaFilter ?? 'all'}
+        teamMembers={teamMembers ?? []}
       />
     </div>
   )
