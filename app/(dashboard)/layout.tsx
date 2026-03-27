@@ -7,13 +7,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const { data: { user } } = await supabase.auth.getUser()
 
   let isAdmin = false
+  let displayName: string | null = null
+  let avatarEmoji: string | null = null
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role')
+      .select('role, display_name, avatar_emoji')
       .eq('id', user.id)
       .single()
     isAdmin = profile?.role === 'admin'
+    displayName = profile?.display_name ?? null
+    avatarEmoji = profile?.avatar_emoji ?? null
   }
 
   return (
@@ -75,8 +79,8 @@ export default async function DashboardLayout({ children }: { children: React.Re
             </span>
           </Link>
 
-          {/* Nav links, user email, sign out — client component for active states + mobile */}
-          <NavClient isAdmin={isAdmin} userEmail={user?.email ?? ''} />
+          {/* Nav links, user info, sign out — client component for active states + mobile */}
+          <NavClient isAdmin={isAdmin} userEmail={user?.email ?? ''} userDisplayName={displayName} userAvatarEmoji={avatarEmoji} />
         </div>
       </nav>
 

@@ -5,16 +5,41 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 
+const FONT = "'Plus Jakarta Sans', sans-serif"
+
 interface Props {
   isAdmin: boolean
   userEmail: string
+  userDisplayName: string | null
+  userAvatarEmoji: string | null
 }
 
-function truncateEmail(email: string, max = 22): string {
-  return email.length > max ? email.slice(0, max - 1) + '…' : email
+function truncateDisplay(text: string, max = 20): string {
+  return text.length > max ? text.slice(0, max - 1) + '…' : text
 }
 
-export default function NavClient({ isAdmin, userEmail }: Props) {
+function NavAvatar({ displayName, email, avatarEmoji, size = 28 }: {
+  displayName: string | null
+  email: string
+  avatarEmoji: string | null
+  size?: number
+}) {
+  const initial = (displayName || email)[0]?.toUpperCase() ?? '?'
+  return (
+    <div style={{
+      width: size, height: size, borderRadius: '50%',
+      background: '#2D8FBF', display: 'flex',
+      alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+    }}>
+      {avatarEmoji
+        ? <span style={{ fontSize: Math.round(size * 0.55), lineHeight: 1 }}>{avatarEmoji}</span>
+        : <span style={{ fontSize: Math.round(size * 0.42), fontWeight: 700, color: '#ffffff', fontFamily: FONT, lineHeight: 1 }}>{initial}</span>
+      }
+    </div>
+  )
+}
+
+export default function NavClient({ isAdmin, userEmail, userDisplayName, userAvatarEmoji }: Props) {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -37,7 +62,6 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
     ...(isAdmin ? [{ href: '/settings', label: 'Settings' }] : []),
   ]
 
-  // Track mobile breakpoint (< 768px) via resize listener
   useEffect(() => {
     function checkWidth() {
       const mobile = window.innerWidth < 768
@@ -49,7 +73,6 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
     return () => window.removeEventListener('resize', checkWidth)
   }, [])
 
-  // Close mobile menu when clicking outside
   useEffect(() => {
     if (!mobileOpen) return
     function handleClickOutside(e: MouseEvent) {
@@ -64,75 +87,58 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [mobileOpen])
 
+  const displayLabel = truncateDisplay(userDisplayName || userEmail)
+
   return (
     <>
-      {/* Desktop nav — hidden on mobile */}
-      <div
-        style={{
-          display: isMobile ? 'none' : 'flex',
-          alignItems: 'stretch',
-          gap: '32px',
-        }}
-      >
-        {/* Nav links */}
+      {/* Desktop nav */}
+      <div style={{ display: isMobile ? 'none' : 'flex', alignItems: 'stretch', gap: '32px' }}>
         {navLinks.map(({ href, label }) => (
           <Link
             key={href}
             href={href}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              fontSize: '14px',
-              fontWeight: 600,
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              display: 'flex', alignItems: 'center',
+              fontSize: '14px', fontWeight: 600, fontFamily: FONT,
               color: isActive(href) ? '#2D8FBF' : '#252850',
               borderBottom: isActive(href) ? '2px solid #2D8FBF' : '2px solid transparent',
-              textDecoration: 'none',
-              whiteSpace: 'nowrap',
+              textDecoration: 'none', whiteSpace: 'nowrap',
             }}
           >
             {label}
           </Link>
         ))}
 
-        {/* Separator */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ width: '1px', height: '16px', background: '#e5e7eb', display: 'block' }} />
         </div>
 
-        {/* User email */}
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <span
-            title={userEmail}
-            style={{
-              fontSize: '12px',
-              color: '#5B7FA6',
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              whiteSpace: 'nowrap',
-            }}
-          >
-            {truncateEmail(userEmail)}
+        {/* Avatar + display name — links to /profile */}
+        <Link
+          href="/profile"
+          title={userEmail}
+          style={{
+            display: 'flex', alignItems: 'center', gap: '8px',
+            textDecoration: 'none',
+          }}
+        >
+          <NavAvatar displayName={userDisplayName} email={userEmail} avatarEmoji={userAvatarEmoji} />
+          <span style={{ fontSize: '12px', color: '#5B7FA6', fontFamily: FONT, whiteSpace: 'nowrap' }}>
+            {displayLabel}
           </span>
-        </div>
+        </Link>
 
-        {/* Separator before Sign out */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <span style={{ width: '1px', height: '16px', background: '#e5e7eb', display: 'block' }} />
         </div>
 
-        {/* Sign out */}
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button
             onClick={handleLogout}
             style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: 500,
-              color: '#5B7FA6',
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
-              padding: 0,
+              background: 'none', border: 'none', cursor: 'pointer',
+              fontSize: '14px', fontWeight: 500, color: '#5B7FA6',
+              fontFamily: FONT, padding: 0,
             }}
             onMouseEnter={e => (e.currentTarget.style.color = '#2D3272')}
             onMouseLeave={e => (e.currentTarget.style.color = '#5B7FA6')}
@@ -142,21 +148,17 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
         </div>
       </div>
 
-      {/* Mobile hamburger button — only shown on mobile */}
+      {/* Mobile hamburger */}
       <button
         ref={hamburgerRef}
         onClick={() => setMobileOpen(o => !o)}
         aria-label="Toggle menu"
         style={{
           display: isMobile ? 'flex' : 'none',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '8px',
-          borderRadius: '8px',
-          background: 'none',
-          border: 'none',
-          cursor: 'pointer',
-          color: '#2D3272',
+          alignItems: 'center', justifyContent: 'center',
+          padding: '8px', borderRadius: '8px',
+          background: 'none', border: 'none',
+          cursor: 'pointer', color: '#2D3272',
         }}
       >
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
@@ -175,21 +177,15 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
         </svg>
       </button>
 
-      {/* Mobile dropdown menu — only rendered when mobile + open */}
+      {/* Mobile dropdown */}
       {isMobile && mobileOpen && (
         <div
           ref={mobileMenuRef}
           style={{
-            position: 'absolute',
-            top: '100%',
-            left: 0,
-            right: 0,
-            background: '#ffffff',
-            borderBottom: '1px solid #e5e7eb',
+            position: 'absolute', top: '100%', left: 0, right: 0,
+            background: '#ffffff', borderBottom: '1px solid #e5e7eb',
             boxShadow: '0 8px 24px rgba(45, 50, 114, 0.10)',
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
+            zIndex: 100, display: 'flex', flexDirection: 'column',
           }}
         >
           {navLinks.map(({ href, label }) => (
@@ -198,13 +194,9 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
               href={href}
               onClick={() => setMobileOpen(false)}
               style={{
-                display: 'flex',
-                alignItems: 'center',
-                minHeight: '52px',
-                padding: '0 24px',
-                fontSize: '15px',
-                fontWeight: 600,
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                display: 'flex', alignItems: 'center',
+                minHeight: '52px', padding: '0 24px',
+                fontSize: '15px', fontWeight: 600, fontFamily: FONT,
                 color: isActive(href) ? '#2D8FBF' : '#252850',
                 background: isActive(href) ? '#F0F7FF' : 'transparent',
                 textDecoration: 'none',
@@ -215,39 +207,24 @@ export default function NavClient({ isAdmin, userEmail }: Props) {
             </Link>
           ))}
 
-          {/* Email + sign out footer */}
-          <div
-            style={{
-              borderTop: '1px solid #e5e7eb',
-              padding: '16px 24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '12px',
-            }}
-          >
-            <span
-              title={userEmail}
-              style={{
-                fontSize: '12px',
-                color: '#5B7FA6',
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-              }}
+          {/* Profile + sign out footer */}
+          <div style={{ borderTop: '1px solid #e5e7eb', padding: '16px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <Link
+              href="/profile"
+              onClick={() => setMobileOpen(false)}
+              style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}
             >
-              {userEmail}
-            </span>
+              <NavAvatar displayName={userDisplayName} email={userEmail} avatarEmoji={userAvatarEmoji} />
+              <span title={userEmail} style={{ fontSize: '13px', color: '#252850', fontFamily: FONT, fontWeight: 600 }}>
+                {userDisplayName || userEmail}
+              </span>
+            </Link>
             <button
               onClick={handleLogout}
               style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: 600,
-                color: '#5B7FA6',
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                padding: 0,
-                textAlign: 'left',
-                minHeight: '44px',
+                background: 'none', border: 'none', cursor: 'pointer',
+                fontSize: '14px', fontWeight: 600, color: '#5B7FA6',
+                fontFamily: FONT, padding: 0, textAlign: 'left', minHeight: '44px',
               }}
             >
               Sign out

@@ -6,7 +6,7 @@ import type { ActionItem } from './ActionItemList'
 
 type StatusValue = 'open' | 'in_progress' | 'closed'
 type Area = { id: string; name: string }
-type TeamMember = { id: string; email: string; full_name: string | null }
+type TeamMember = { id: string; email: string; full_name: string | null; display_name: string | null; avatar_emoji: string | null }
 
 interface Props {
   areas: Area[]
@@ -174,11 +174,14 @@ export default function AddActionItemModal({ areas, orgId, teamMembers, onAdd, o
                 onBlur={e => (e.currentTarget.style.borderColor = '#e5e7eb')}
               >
                 <option value="">Unassigned</option>
-                {teamMembers.map(m => (
-                  <option key={m.id} value={m.email}>
-                    {m.full_name || m.email}
-                  </option>
-                ))}
+                {teamMembers.map(m => {
+                  const name = m.display_name || m.full_name || m.email
+                  return (
+                    <option key={m.id} value={m.email}>
+                      {m.avatar_emoji ? m.avatar_emoji + ' ' + name : name}
+                    </option>
+                  )
+                })}
               </select>
             ) : (
               <input

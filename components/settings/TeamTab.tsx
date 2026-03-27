@@ -11,6 +11,8 @@ type TeamMember = {
   email: string
   role: 'admin' | 'contributor'
   assigned_area_id: string | null
+  display_name: string | null
+  avatar_emoji: string | null
 }
 
 type PendingInvite = {
@@ -94,8 +96,8 @@ function MemberRow({
     }
   }
 
-  const displayName = member.full_name || member.email
-  const initials = getInitials(member.full_name, member.email)
+  const primaryName = member.display_name || member.full_name || member.email
+  const initials = getInitials(member.display_name || member.full_name, member.email)
 
   return (
     <div style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
@@ -106,32 +108,29 @@ function MemberRow({
           height: '40px',
           borderRadius: '50%',
           background: '#2D8FBF',
-          color: '#ffffff',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          fontSize: '14px',
-          fontWeight: 700,
-          fontFamily: FONT,
           flexShrink: 0,
         }}
       >
-        {initials}
+        {member.avatar_emoji
+          ? <span style={{ fontSize: '20px', lineHeight: 1 }}>{member.avatar_emoji}</span>
+          : <span style={{ fontSize: '14px', fontWeight: 700, color: '#ffffff', fontFamily: FONT, lineHeight: 1 }}>{initials}</span>
+        }
       </div>
 
       {/* Name / email + role badge */}
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <p style={{ fontSize: '14px', fontWeight: 600, color: '#252850', fontFamily: FONT, margin: 0 }}>
-            {displayName}
+          <p style={{ fontSize: '14px', fontWeight: 700, color: '#252850', fontFamily: FONT, margin: 0 }}>
+            {primaryName}
           </p>
           <RoleBadge role={member.role} />
         </div>
-        {member.full_name && (
-          <p style={{ fontSize: '12px', color: '#5B7FA6', margin: '2px 0 0 0' }}>
-            {member.email}
-          </p>
-        )}
+        <p style={{ fontSize: '12px', color: '#5B7FA6', margin: '2px 0 0 0' }}>
+          {member.email}
+        </p>
       </div>
 
       {/* Area dropdown — only for contributors */}

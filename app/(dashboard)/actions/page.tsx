@@ -34,7 +34,7 @@ export default async function ActionsPage({ searchParams }: Props) {
   // Fetch team members for owner dropdown
   const { data: teamMembers } = await supabase
     .from('profiles')
-    .select('id, email, full_name')
+    .select('id, email, full_name, display_name, avatar_emoji')
     .eq('org_id', orgId)
     .order('full_name', { ascending: true })
 

@@ -51,7 +51,7 @@ export default async function SettingsPage({ searchParams }: Props) {
         .order('name', { ascending: true }),
       supabase
         .from('profiles')
-        .select('id, full_name, email, role, assigned_area_id')
+        .select('id, full_name, email, role, assigned_area_id, display_name, avatar_emoji')
         .eq('org_id', orgId)
         .order('created_at', { ascending: true }),
       supabase
@@ -71,6 +71,8 @@ export default async function SettingsPage({ searchParams }: Props) {
     email: m.email ?? '',
     role: (m.role ?? 'contributor') as 'admin' | 'contributor',
     assigned_area_id: m.assigned_area_id ?? null,
+    display_name: m.display_name ?? null,
+    avatar_emoji: m.avatar_emoji ?? null,
   }))
 
   const pendingInvitations = (invitations ?? [])

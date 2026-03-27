@@ -56,7 +56,7 @@ function SignupForm() {
     if (user) {
       await supabase
         .from('profiles')
-        .update({ full_name: fullName })
+        .update({ full_name: fullName, display_name: fullName.trim() || null })
         .eq('id', user.id)
     }
 
@@ -251,7 +251,7 @@ function SignupForm() {
                   fontFamily: "'Plus Jakarta Sans', sans-serif",
                 }}
               >
-                Full name
+                What should we call you?
               </label>
               <input
                 id="fullName"
@@ -260,7 +260,7 @@ function SignupForm() {
                 required
                 value={fullName}
                 onChange={e => setFullName(e.target.value)}
-                placeholder="Abby OpEx Lead"
+                placeholder="e.g. Sarah Chen"
                 style={{
                   width: '100%',
                   borderRadius: '0.5rem',

@@ -19,7 +19,7 @@ export type ActionItem = {
 }
 
 type Area = { id: string; name: string }
-type TeamMember = { id: string; email: string; full_name: string | null }
+type TeamMember = { id: string; email: string; full_name: string | null; display_name: string | null; avatar_emoji: string | null }
 
 interface Props {
   initialItems: ActionItem[]
@@ -31,7 +31,24 @@ interface Props {
 
 function getOwnerDisplayName(ownerEmail: string, teamMembers: TeamMember[]): string {
   const member = teamMembers.find(m => m.email === ownerEmail)
-  return member ? (member.full_name || member.email) : ownerEmail
+  return member ? (member.display_name || member.full_name || member.email) : ownerEmail
+}
+
+function OwnerAvatar({ ownerEmail, teamMembers }: { ownerEmail: string; teamMembers: TeamMember[] }) {
+  const member = teamMembers.find(m => m.email === ownerEmail)
+  const emoji = member?.avatar_emoji ?? null
+  const initial = (member?.display_name || member?.full_name || ownerEmail)[0]?.toUpperCase() ?? '?'
+  return (
+    <div style={{
+      width: '22px', height: '22px', borderRadius: '50%', background: '#2D8FBF',
+      display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+    }}>
+      {emoji
+        ? <span style={{ fontSize: '12px', lineHeight: 1 }}>{emoji}</span>
+        : <span style={{ fontSize: '10px', fontWeight: 700, color: '#ffffff', fontFamily: "'Plus Jakarta Sans', sans-serif", lineHeight: 1 }}>{initial}</span>
+      }
+    </div>
+  )
 }
 
 const STATUS_LABELS: Record<StatusValue, string> = {
@@ -140,10 +157,19 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
         unassignedCount++
       }
     }
-    const memberMap = new Map(teamMembers.map(m => [m.email, m.full_name || m.email]))
+    const memberMap = new Map(teamMembers.map(m => [
+      m.email,
+      { name: m.display_name || m.full_name || m.email, emoji: m.avatar_emoji },
+    ]))
     return {
       owners: Array.from(counts.entries())
-        .map(([value, count]) => ({ value, label: memberMap.get(value) ?? value, count }))
+        .map(([value, count]) => {
+          const info = memberMap.get(value)
+          const label = info
+            ? (info.emoji ? info.emoji + ' ' + info.name : info.name)
+            : value
+          return { value, label, count }
+        })
         .sort((a, b) => a.label.localeCompare(b.label)),
       unassignedCount,
     }
@@ -643,11 +669,14 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
                               }}
                             >
                               <option value="">Unassigned</option>
-                              {teamMembers.map(m => (
-                                <option key={m.id} value={m.email}>
-                                  {m.full_name || m.email}
-                                </option>
-                              ))}
+                              {teamMembers.map(m => {
+                                const name = m.display_name || m.full_name || m.email
+                                return (
+                                  <option key={m.id} value={m.email}>
+                                    {m.avatar_emoji ? m.avatar_emoji + ' ' + name : name}
+                                  </option>
+                                )
+                              })}
                             </select>
                           ) : (
                             <input
@@ -701,12 +730,17 @@ export default function ActionItemList({ initialItems, areas, orgId, initialArea
                         onClick={() => startOwnerEdit(item)}
                         style={{
                           background: 'none', border: 'none', padding: 0,
-                          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px',
+                          cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
                           textAlign: 'left', fontSize: '0.875rem',
                           fontFamily: "'Plus Jakarta Sans', sans-serif",
                         }}
                       >
-                        <span style={{ fontSize: '0.875rem' }}>👤</span>
+                        {item.owner_name
+                          ? <OwnerAvatar ownerEmail={item.owner_name} teamMembers={teamMembers} />
+                          : <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#e5e7eb', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <span style={{ fontSize: '10px', color: '#9aabb8' }}>–</span>
+                            </div>
+                        }
                         {item.owner_name ? (
                           <span style={{ color: '#252850' }}>
                             {getOwnerDisplayName(item.owner_name, teamMembers)}
