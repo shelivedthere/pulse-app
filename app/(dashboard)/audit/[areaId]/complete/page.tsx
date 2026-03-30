@@ -26,7 +26,7 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
 
   if (!profile?.org_id) redirect('/onboarding')
 
-  const [{ data: audit }, { data: area }, { count: actionCount }] = await Promise.all([
+  const [{ data: audit }, { data: area }, { count: actionCount }, { data: org }] = await Promise.all([
     supabase
       .from('audits')
       .select('id, score, ai_summary, submitted_at')
@@ -43,7 +43,14 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
       .from('action_items')
       .select('id', { count: 'exact', head: true })
       .eq('audit_id', auditId),
+    supabase
+      .from('organizations')
+      .select('logo_url')
+      .eq('id', profile.org_id)
+      .single(),
   ])
+
+  const orgLogoUrl = org?.logo_url ?? null
 
   if (!audit) redirect('/dashboard')
 
@@ -87,6 +94,17 @@ export default async function AuditCompletePage({ params, searchParams }: Props)
           padding: '40px 32px 36px',
         }}
       >
+        {/* Org logo — top-left of card */}
+        {orgLogoUrl && (
+          <div style={{ marginBottom: '20px' }}>
+            <img
+              src={orgLogoUrl}
+              alt="Company logo"
+              style={{ maxHeight: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
+            />
+          </div>
+        )}
+
         {/* Top icon + heading */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div

@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import TemplateBuilder from '@/components/settings/TemplateBuilder'
 import TeamTab from '@/components/settings/TeamTab'
+import BrandingTab from '@/components/settings/BrandingTab'
 
 interface Props {
   searchParams: Promise<{ tab?: string }>
@@ -40,6 +41,15 @@ export default async function SettingsPage({ searchParams }: Props) {
         .eq('template_id', template.id)
         .order('sort_order', { ascending: true })
     : { data: [] }
+
+  // ── Branding tab data ────────────────────────────────────────
+  const { data: orgData } = await supabase
+    .from('organizations')
+    .select('logo_url')
+    .eq('id', orgId)
+    .single()
+
+  const currentLogoUrl = orgData?.logo_url ?? null
 
   // ── Team tab data ────────────────────────────────────────────
   const [{ data: areas }, { data: contributors }, { data: invitations }] =
@@ -85,7 +95,7 @@ export default async function SettingsPage({ searchParams }: Props) {
       created_at: i.created_at,
     }))
 
-  const activeTab = tab === 'team' ? 'team' : 'template'
+  const activeTab = tab === 'team' ? 'team' : tab === 'branding' ? 'branding' : 'template'
 
   const FONT = "'Plus Jakarta Sans', sans-serif"
 
@@ -144,6 +154,24 @@ export default async function SettingsPage({ searchParams }: Props) {
           >
             Team
           </Link>
+          <Link
+            href="/settings?tab=branding"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              minHeight: '44px',
+              padding: '0 16px',
+              fontSize: '14px',
+              fontWeight: 700,
+              fontFamily: FONT,
+              textDecoration: 'none',
+              marginBottom: '-2px',
+              borderBottom: activeTab === 'branding' ? '2px solid #2D8FBF' : '2px solid transparent',
+              color: activeTab === 'branding' ? '#2D8FBF' : '#5B7FA6',
+            }}
+          >
+            Branding
+          </Link>
         </div>
       </div>
 
@@ -194,6 +222,11 @@ export default async function SettingsPage({ searchParams }: Props) {
           teamMembers={teamMembers}
           pendingInvitations={pendingInvitations}
         />
+      )}
+
+      {/* Branding tab */}
+      {activeTab === 'branding' && (
+        <BrandingTab orgId={orgId} currentLogoUrl={currentLogoUrl} />
       )}
     </div>
   )

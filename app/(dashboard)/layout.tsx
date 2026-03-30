@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import NavClient from '@/components/dashboard/NavClient'
+import NavLogo from '@/components/dashboard/NavLogo'
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -9,15 +10,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
   let isAdmin = false
   let displayName: string | null = null
   let avatarEmoji: string | null = null
+  let orgLogoUrl: string | null = null
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('role, display_name, avatar_emoji')
+      .select('org_id, role, display_name, avatar_emoji')
       .eq('id', user.id)
       .single()
     isAdmin = profile?.role === 'admin'
     displayName = profile?.display_name ?? null
     avatarEmoji = profile?.avatar_emoji ?? null
+
+    if (profile?.org_id) {
+      const { data: org } = await supabase
+        .from('organizations')
+        .select('logo_url')
+        .eq('id', profile.org_id)
+        .single()
+      orgLogoUrl = org?.logo_url ?? null
+    }
   }
 
   return (
@@ -53,30 +64,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
               textDecoration: 'none',
             }}
           >
-            <span
-              style={{
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
-                color: '#2D3272',
-                fontWeight: 800,
-                fontSize: '20px',
-                letterSpacing: '-0.02em',
-                lineHeight: 1,
-              }}
-            >
-              Pulse
-              <span
-                style={{
-                  display: 'inline-block',
-                  width: '7px',
-                  height: '7px',
-                  borderRadius: '50%',
-                  background: '#F5D800',
-                  marginLeft: '2px',
-                  marginBottom: '2px',
-                  verticalAlign: 'middle',
-                }}
-              />
-            </span>
+            <NavLogo orgLogoUrl={orgLogoUrl} />
           </Link>
 
           {/* Nav links, user info, sign out — client component for active states + mobile */}

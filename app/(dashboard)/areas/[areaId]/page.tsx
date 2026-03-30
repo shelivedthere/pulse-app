@@ -49,14 +49,23 @@ export default async function AreaDetailPage({ params }: Props) {
   const orgId: string = profile.org_id
 
   // Verify area belongs to this org
-  const { data: area } = await supabase
-    .from('areas')
-    .select('id, name')
-    .eq('id', areaId)
-    .eq('org_id', orgId)
-    .single()
+  const [{ data: area }, { data: org }] = await Promise.all([
+    supabase
+      .from('areas')
+      .select('id, name')
+      .eq('id', areaId)
+      .eq('org_id', orgId)
+      .single(),
+    supabase
+      .from('organizations')
+      .select('logo_url')
+      .eq('id', orgId)
+      .single(),
+  ])
 
   if (!area) redirect('/dashboard')
+
+  const orgLogoUrl = org?.logo_url ?? null
 
   // Fetch last 10 audits in descending order, reverse for chart
   const { data: rawAudits } = await supabase
@@ -115,6 +124,16 @@ export default async function AreaDetailPage({ params }: Props) {
       {/* Page header */}
       <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', marginBottom: '32px' }}>
         <div>
+          {/* Org logo above area name */}
+          {orgLogoUrl && (
+            <div style={{ marginBottom: '10px' }}>
+              <img
+                src={orgLogoUrl}
+                alt="Company logo"
+                style={{ maxHeight: '32px', width: 'auto', display: 'block', objectFit: 'contain' }}
+              />
+            </div>
+          )}
           {/* Area name + score badge row */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexWrap: 'wrap' }}>
             <h1
